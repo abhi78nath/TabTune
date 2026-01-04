@@ -69,6 +69,7 @@
 
   .media-row {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
@@ -100,6 +101,24 @@
   }
   
   .info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+
+  .album-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--border-color);
+  }
+
+  .info-text {
     flex: 1;
     min-width: 0;
   }

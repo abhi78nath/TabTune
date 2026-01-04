@@ -121,21 +121,31 @@ async function renderTabs(tabs = []) {
     li.className = tab.muted ? "muted" : "playing";
     li.title = tab.url;
 
-    // Title + hostname
+    // Title + hostname + image
     const info = document.createElement("div");
     info.className = "info";
     const isSpotify = tab.url && tab.url.includes('open.spotify.com');
     const spotifyDetails = spotifyData[tab.id];
     
     if (isSpotify && spotifyDetails && spotifyDetails.title) {
+      // Create image element if available
+      let imageHtml = '';
+      if (spotifyDetails.image) {
+        imageHtml = `<img src="${spotifyDetails.image}" alt="Album cover" class="album-image" />`;
+      }
       info.innerHTML = `
-        <strong>${spotifyDetails.title || tab.title || "Untitled"}</strong><br>
-        <small>${spotifyDetails.artist || "Unknown Artist"}</small>
+        ${imageHtml}
+        <div class="info-text">
+          <strong>${spotifyDetails.title || tab.title || "Untitled"}</strong><br>
+          <small>${spotifyDetails.artist || "Unknown Artist"}</small>
+        </div>
       `;
     } else {
       info.innerHTML = `
-        <strong>${tab.title || "Untitled"}</strong><br>
-        <small>${new URL(tab.url).hostname}</small>
+        <div class="info-text">
+          <strong>${tab.title || "Untitled"}</strong><br>
+          <small>${new URL(tab.url).hostname}</small>
+        </div>
       `;
     }
 
