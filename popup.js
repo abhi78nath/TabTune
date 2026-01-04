@@ -118,7 +118,14 @@ async function renderTabs(tabs = []) {
 
   tabs.forEach((tab) => {
     const li = document.createElement("li");
-    li.className = tab.muted ? "muted" : "playing";
+    // Set class based on state: paused > muted > playing
+    if (tab.paused) {
+      li.className = "paused";
+    } else if (tab.muted) {
+      li.className = "muted";
+    } else {
+      li.className = "playing";
+    }
     li.title = tab.url;
 
     // Title + hostname + image
@@ -133,18 +140,21 @@ async function renderTabs(tabs = []) {
       if (spotifyDetails.image) {
         imageHtml = `<img src="${spotifyDetails.image}" alt="Album cover" class="album-image" />`;
       }
+      const pausedIndicator = tab.paused ? '<small style="color: #888; font-style: italic;">⏸ Paused</small><br>' : '';
       info.innerHTML = `
         ${imageHtml}
         <div class="info-text">
           <strong>${spotifyDetails.title || tab.title || "Untitled"}</strong><br>
-          <small>${spotifyDetails.artist || "Unknown Artist"}</small>
+          <small>${spotifyDetails.artist || "Unknown Artist"}</small><br>
+          ${pausedIndicator}
         </div>
       `;
     } else {
+      const pausedIndicator = tab.paused ? '<br><small style="color: #888; font-style: italic;">⏸ Paused</small>' : '';
       info.innerHTML = `
         <div class="info-text">
           <strong>${tab.title || "Untitled"}</strong><br>
-          <small>${new URL(tab.url).hostname}</small>
+          <small>${new URL(tab.url).hostname}</small>${pausedIndicator}
         </div>
       `;
     }

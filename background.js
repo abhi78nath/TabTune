@@ -5,26 +5,48 @@ importScripts('spotify-extractor.js');
 
 let lastPlayingTabsHash = null;
 let forceUpdate = false;
+// Track recently playing tabs (tabId -> timestamp) to show paused tabs
+let recentlyPlayingTabs = new Map();
+const RECENT_TAB_TIMEOUT = 30000; // Keep paused tabs visible for 30 seconds
 
 function updateMediaTabs() {
     chrome.tabs.query({}, (tabs) => {
+      const now = Date.now();
+      
+      // Update recently playing tabs map - add currently audible tabs
+      tabs.forEach(tab => {
+        if (tab.audible === true) {
+          recentlyPlayingTabs.set(tab.id, now);
+        }
+      });
+      
+      // // Remove old entries (tabs that haven't been audible for a while)
+      // for (const [tabId, timestamp] of recentlyPlayingTabs.entries()) {
+      //   if (now - timestamp > RECENT_TAB_TIMEOUT) {
+      //     recentlyPlayingTabs.delete(tabId);
+      //   }
+      // }
+      
+      // Include tabs that are currently audible OR were recently audible
       const playingTabs = tabs
-        .filter(tab => tab.audible === true)
+        .filter(tab => tab.audible === true || recentlyPlayingTabs.has(tab.id))
         .map(tab => ({
           id: tab.id,
           title: tab.title || "Untitled",
           url: tab.url,
           windowId: tab.windowId,
           audible: tab.audible,
+          paused: !tab.audible && recentlyPlayingTabs.has(tab.id), // Mark as paused if not audible but recently was
           muted: tab.mutedInfo?.muted || false
         }));
   
       // Create a simple hash to detect actual changes
-      // Include id, muted, audible, title, and url to catch song changes
+      // Include id, muted, audible, paused, title, and url to catch song changes
       const currentHash = JSON.stringify(playingTabs.map(t => ({
         id: t.id,
         muted: t.muted,
         audible: t.audible,
+        paused: t.paused,
         title: t.title,
         url: t.url
       })).sort((a, b) => a.id - b.id));
@@ -72,6 +94,12 @@ function updateMediaTabs() {
   
   // Also useful when tab becomes active
   chrome.tabs.onActivated.addListener(() => {
+    updateMediaTabs();
+  });
+  
+  // Clean up closed tabs from recently playing map
+  chrome.tabs.onRemoved.addListener((tabId) => {
+    recentlyPlayingTabs.delete(tabId);
     updateMediaTabs();
   });
   

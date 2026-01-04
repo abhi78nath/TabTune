@@ -100,6 +100,15 @@
     color: var(--muted-text);
   }
   
+  li.paused {
+    opacity: 0.75;
+    border-left-color: #f59e0b; /* amber/orange for paused */
+  }
+  
+  li.paused strong {
+    color: #f59e0b; /* amber/orange for paused text */
+  }
+  
   .info {
     flex: 1;
     min-width: 0;
