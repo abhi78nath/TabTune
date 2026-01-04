@@ -10,6 +10,22 @@
   <h3>Currently playing media:</h3>
   <ul id="list"></ul>
 
+  <!-- Lyrics Modal -->
+  <div id="lyricsModal" class="lyrics-modal">
+    <div class="lyrics-modal-content">
+      <div class="lyrics-modal-header">
+        <h4 id="lyricsTitle">Lyrics</h4>
+        <button class="lyrics-close-btn" id="lyricsCloseBtn">&times;</button>
+      </div>
+      <div class="lyrics-modal-body">
+        <div id="lyricsLoading" class="lyrics-loading">Loading lyrics...</div>
+        <div id="lyricsContent" class="lyrics-content"></div>
+        <div id="lyricsError" class="lyrics-error"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="lyrics-service.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

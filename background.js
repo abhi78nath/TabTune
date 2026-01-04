@@ -1,4 +1,8 @@
 // background.js (service worker)
+
+// Import Spotify extraction functionality
+importScripts('spotify-extractor.js');
+
 function updateMediaTabs() {
     chrome.tabs.query({}, (tabs) => {
       const playingTabs = tabs
@@ -11,6 +15,13 @@ function updateMediaTabs() {
           audible: tab.audible,
           muted: tab.mutedInfo?.muted || false
         }));
+  
+      // Check for Spotify tabs and get song details
+      playingTabs.forEach(tab => {
+        if (tab.url && tab.url.includes('open.spotify.com')) {
+          getSpotifySongDetails(tab.id);
+        }
+      });
   
       // Optional: store in chrome.storage for popup to read quickly
       chrome.storage.local.set({ playingTabs });

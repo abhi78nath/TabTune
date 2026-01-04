@@ -6,7 +6,12 @@
     "permissions": [
       "tabs",
       "activeTab",
-      "storage"
+      "storage",
+      "scripting"
+    ],
+    "host_permissions": [
+      "https://open.spotify.com/*",
+      "https://api.lyrics.ovh/*"
     ],
     "action": {
       "default_popup": "popup.html",
