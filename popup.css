@@ -209,6 +209,24 @@
     background: #1ed760;
   }
 
+  /* Play/Pause button */
+  .play-pause-btn {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #3b82f6; /* Blue */
+    color: white;
+  }
+
+  .play-pause-btn:hover {
+    background: #2563eb;
+  }
+
   /* Lyrics Panel */
   .lyrics-panel {
     max-height: 0;

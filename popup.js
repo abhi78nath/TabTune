@@ -275,6 +275,58 @@ async function renderTabs(tabs = []) {
       }
     };
 
+    // Play/Pause button
+    const playPauseBtn = document.createElement("button");
+    // Determine initial label based on paused state
+    const isPaused = tab.paused || !tab.audible;
+    playPauseBtn.textContent = isPaused ? "Play ▶️" : "Pause ⏸️";
+    playPauseBtn.className = "play-pause-btn";
+    playPauseBtn.title = isPaused ? "Resume playback" : "Pause playback";
+
+    playPauseBtn.onclick = async (e) => {
+      e.stopPropagation();
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => {
+            // 1. Try Spotify specific controls first
+            const spotifyBtn = document.querySelector('[data-testid="control-button-playpause"]');
+            if (spotifyBtn) {
+              spotifyBtn.click();
+              return true;
+            }
+
+            // 2. Fallback to generic media elements
+            const media = document.querySelectorAll('video, audio');
+            let played = false;
+            for (const m of media) {
+              if (!m.paused) {
+                m.pause();
+              } else {
+                m.play();
+                played = true;
+              }
+            }
+            return played;
+          }
+        });
+        
+        // Optimistically update button text
+        const currentText = playPauseBtn.textContent;
+        if (currentText.includes("Play")) {
+             playPauseBtn.textContent = "Pause ⏸️";
+             playPauseBtn.title = "Pause playback";
+        } else {
+             playPauseBtn.textContent = "Play ▶️";
+             playPauseBtn.title = "Resume playback";
+        }
+
+      } catch (err) {
+        console.error("Failed to toggle play/pause:", err);
+      }
+    };
+    
+    buttonContainer.appendChild(playPauseBtn);
     buttonContainer.appendChild(muteBtn);
 
     // Click anywhere else on the row → focus the tab
