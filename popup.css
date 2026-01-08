@@ -7,7 +7,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   min-width: 400px;
   max-width: 480px;
   max-height: 600px;
@@ -18,36 +19,38 @@ html, body {
   transition: background 0.2s ease-out, color 0.2s ease-out;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  border-radius: 12px;
 }
 
 /* Light / dark mode support */
 :root {
-  --bg-color:     #fafafa;
-  --text-color:   #1a1a1a;
+  --bg-color: #fafafa;
+  --text-color: #1a1a1a;
   --border-color: #e0e0e0;
-  --hover-bg:     #f5f5f5;
-  --muted-text:   #666;
-  --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md:    0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg:    0 10px 20px rgba(0, 0, 0, 0.12);
+  --hover-bg: #f5f5f5;
+  --muted-text: #666;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color:     #121212;
-    --text-color:   #f0f0f0;
+    --bg-color: #121212;
+    --text-color: #f0f0f0;
     --border-color: #333;
-    --hover-bg:     #1e1e1e;
-    --muted-text:   #aaa;
-    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-md:    0 4px 6px rgba(0, 0, 0, 0.4);
-    --shadow-lg:    0 10px 20px rgba(0, 0, 0, 0.5);
+    --hover-bg: #1e1e1e;
+    --muted-text: #aaa;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
   }
 }
 
 /* Content */
 body {
-  padding: 16px;
+  padding: 0;
+  border-radius: 12px;
 }
 
 h3 {
@@ -68,7 +71,7 @@ li {
   gap: 0;
   padding: 0;
   border-radius: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   background: var(--hover-bg);
   border: 1px solid var(--border-color);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,14 +86,14 @@ li {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 4px;
   padding: 14px 12px;
   cursor: pointer;
   width: 100%;
 }
 
 li:hover {
-  transform: translateY(-2px);
+  /* transform: translateY(-2px); */
   box-shadow: var(--shadow-md);
 }
 
@@ -316,7 +319,7 @@ li.muted .mute-btn:hover {
 }
 
 .play-pause-btn:hover {
-  transform: scale(1.15);
+  transform: scale(0.95);
 }
 
 .play-pause-btn:active {
