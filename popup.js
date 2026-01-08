@@ -254,6 +254,16 @@ async function renderTabs(tabs = []) {
               btn.style.color = finalTextColor;
             });
 
+            // Update lyrics button color
+            const lyricsBtnEl = li.querySelector('.lyrics-btn');
+            if (lyricsBtnEl) {
+              lyricsBtnEl.style.color = finalTextColor;
+              // Also ensure it's not using the default gradient if we want semi-transparent
+              lyricsBtnEl.style.background = 'rgba(255, 255, 255, 0.15)';
+              lyricsBtnEl.style.backdropFilter = 'blur(4px)';
+              lyricsBtnEl.style.border = `1px solid rgba(${r}, ${g}, ${b}, 0.2)`;
+            }
+
             // Update progress time colors to match readable text color
             const progressTimeCurrent = li.querySelector('.progress-time-current');
             const progressTimeTotal = li.querySelector('.progress-time-total');
@@ -355,9 +365,18 @@ async function renderTabs(tabs = []) {
     let lyricsBtn = null;
     if (isSpotify && spotifyDetails && spotifyDetails.title && spotifyDetails.artist) {
       lyricsBtn = document.createElement("button");
-      lyricsBtn.textContent = "🎵 Lyrics";
       lyricsBtn.className = "lyrics-btn";
       lyricsBtn.title = "Toggle lyrics for this song";
+
+      const lyricsIcon = document.createElement("div");
+      lyricsIcon.className = "lyrics-icon";
+
+      const lyricsText = document.createElement("span");
+      lyricsText.className = "lyrics-text";
+      lyricsText.textContent = "Lyrics";
+
+      lyricsBtn.appendChild(lyricsIcon);
+      lyricsBtn.appendChild(lyricsText);
       
       // Create lyrics panel
       lyricsPanel = document.createElement("div");
@@ -425,11 +444,11 @@ async function renderTabs(tabs = []) {
         e.stopPropagation();
         await toggleLyricsPanel(lyricsPanel, spotifyDetails.artist, spotifyDetails.title);
         const isExpanded = lyricsPanel.classList.contains("expanded");
-        lyricsBtn.textContent = isExpanded ? "🎵 Hide Lyrics" : "🎵 Lyrics";
+        lyricsText.textContent = isExpanded ? "Hide Lyrics" : "Lyrics";
       };
       
       if (expandedPanels.has(tab.id)) {
-        lyricsBtn.textContent = "🎵 Hide Lyrics";
+        lyricsText.textContent = "Hide Lyrics";
       }
     }
 
@@ -555,12 +574,15 @@ async function renderTabs(tabs = []) {
       controlRow.appendChild(playPauseBtn);
       if (nextBtn) controlRow.appendChild(nextBtn);
       
-      // Add lyrics button if available
-      if (lyricsBtn) {
-        controlRow.appendChild(lyricsBtn);
-      }
-      
       mainRow.appendChild(controlRow);
+
+      // Add lyrics button in its own row below controls
+      if (lyricsBtn) {
+        const lyricsRow = document.createElement("div");
+        lyricsRow.className = "lyrics-row";
+        lyricsRow.appendChild(lyricsBtn);
+        mainRow.appendChild(lyricsRow);
+      }
     } else {
       // For non-Spotify tabs, add play/pause in a control row
       const controlRow = document.createElement("div");
