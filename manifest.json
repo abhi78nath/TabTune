@@ -16,9 +16,8 @@
     "action": {
       "default_popup": "popup.html",
       "default_icon": {
-        "16": "assets/play.png",
-        "48": "assets/play.png",
-        "128": "assets/play.png"
+        "48": "assets/main-icon-48.png",
+        "128": "assets/main-icon-128.png"
       }
     },
     "background": {
