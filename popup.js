@@ -269,6 +269,13 @@ async function renderTabs(tabs = []) {
             const progressTimeTotal = li.querySelector('.progress-time-total');
             if (progressTimeCurrent) progressTimeCurrent.style.color = finalTextColor;
             if (progressTimeTotal) progressTimeTotal.style.color = finalTextColor;
+
+            // Update progress bar fill color
+            const progressBarFill = li.querySelector('.progress-bar-fill');
+            if (progressBarFill) {
+              progressBarFill.style.background = finalTextColor;
+              progressBarFill.style.opacity = "0.9";
+            }
           }
         };
         
