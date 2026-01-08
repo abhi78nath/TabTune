@@ -154,6 +154,23 @@ async function renderTabs(tabs = []) {
     }
     li.title = tab.url;
 
+    // Mute button (top right corner)
+    const muteBtn = document.createElement("button");
+    muteBtn.textContent = tab.muted ? "🔊" : "🔇";
+    muteBtn.className = "mute-btn";
+    muteBtn.title = tab.muted ? "Unmute this tab" : "Mute this tab";
+
+    muteBtn.onclick = async (e) => {
+      e.stopPropagation();
+      try {
+        await chrome.tabs.update(tab.id, { muted: !tab.muted });
+      } catch (err) {
+        console.error("Failed to toggle mute:", err);
+      }
+    };
+    
+    li.appendChild(muteBtn);
+
     // Title + hostname + image
     const info = document.createElement("div");
     info.className = "info";
@@ -181,8 +198,6 @@ async function renderTabs(tabs = []) {
         pausedEl.style.cssText = "color: #888; font-style: italic;";
         pausedEl.innerHTML = "⏸ Paused";
         infoText.appendChild(pausedEl);
-        // If we change background, we might need to update this paused color too, 
-        // but let's leave it for now or handle inside the onload
       }
 
       // Create image element if available
@@ -210,16 +225,11 @@ async function renderTabs(tabs = []) {
             li.style.borderColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
             
             // Use the new accessible color generator
-            // Try to find a readable color from the least dominant (accent) candidates
             const finalTextColor = getReadableTextColor(primary, leastColors || []);
             
             // Apply text colors
             li.style.color = finalTextColor;
             titleEl.style.color = finalTextColor;
-            
-            // For subtext, we can try to find another readable color or just use the same one with opacity
-            // For now, let's just make sure the main text is readable. 
-            // We can try to use a slightly dimmed version or the same color for consistency.
             artistEl.style.color = finalTextColor;
             artistEl.style.opacity = "0.9";
             
@@ -229,6 +239,21 @@ async function renderTabs(tabs = []) {
               pausedIndicator.style.color = finalTextColor;
               pausedIndicator.style.opacity = "0.8";
             }
+            
+            // Update mute button color
+            muteBtn.style.color = finalTextColor;
+            
+            // Update play/pause button color (SVG will inherit via currentColor)
+            const playPauseBtn = li.querySelector('.play-pause-btn');
+            if (playPauseBtn) {
+              playPauseBtn.style.color = finalTextColor;
+            }
+
+            // Update progress time colors to match readable text color
+            const progressTimeCurrent = li.querySelector('.progress-time-current');
+            const progressTimeTotal = li.querySelector('.progress-time-total');
+            if (progressTimeCurrent) progressTimeCurrent.style.color = finalTextColor;
+            if (progressTimeTotal) progressTimeTotal.style.color = finalTextColor;
           }
         };
         
@@ -318,18 +343,15 @@ async function renderTabs(tabs = []) {
       }
     }
 
-    // Create main content row (info + buttons)
+    // Create main content row (info)
     const mainRow = document.createElement("div");
     mainRow.className = "media-row";
 
-    // Button container
-    const buttonContainer = document.createElement("div");
-    buttonContainer.className = "button-container";
-
     // Show Lyrics button (only for Spotify tabs with song details)
     let lyricsPanel = null;
+    let lyricsBtn = null;
     if (isSpotify && spotifyDetails && spotifyDetails.title && spotifyDetails.artist) {
-      const lyricsBtn = document.createElement("button");
+      lyricsBtn = document.createElement("button");
       lyricsBtn.textContent = "🎵 Lyrics";
       lyricsBtn.className = "lyrics-btn";
       lyricsBtn.title = "Toggle lyrics for this song";
@@ -353,22 +375,18 @@ async function renderTabs(tabs = []) {
         
         // Check if we have cached lyrics for this tab
         if (loadedLyrics.has(tab.id)) {
-          // Restore from cache - no need to reload
           loadingEl.style.display = "none";
           contentEl.innerHTML = loadedLyrics.get(tab.id);
           contentEl.style.display = "block";
           errorEl.style.display = "none";
           lyricsPanel.dataset.loaded = "true";
         } else {
-          // Load lyrics if not cached
           loadingEl.style.display = "block";
           contentEl.style.display = "none";
           errorEl.style.display = "none";
           
-          // Create cache key
           const cacheKey = `${spotifyDetails.artist}|${spotifyDetails.title}`;
           
-          // Check global cache first
           if (lyricsCache.has(cacheKey)) {
             const cachedLyrics = lyricsCache.get(cacheKey);
             loadingEl.style.display = "none";
@@ -376,7 +394,6 @@ async function renderTabs(tabs = []) {
             contentEl.style.display = "block";
             lyricsPanel.dataset.loaded = "true";
           } else {
-            // Load lyrics asynchronously
             fetchLyrics(spotifyDetails.artist, spotifyDetails.title).then(result => {
               loadingEl.style.display = "none";
               if (result.error) {
@@ -387,7 +404,6 @@ async function renderTabs(tabs = []) {
                 contentEl.innerHTML = formattedLyrics;
                 contentEl.style.display = "block";
                 lyricsPanel.dataset.loaded = "true";
-                // Cache the lyrics
                 lyricsCache.set(cacheKey, formattedLyrics);
               } else {
                 errorEl.textContent = "No lyrics found";
@@ -405,42 +421,25 @@ async function renderTabs(tabs = []) {
       lyricsBtn.onclick = async (e) => {
         e.stopPropagation();
         await toggleLyricsPanel(lyricsPanel, spotifyDetails.artist, spotifyDetails.title);
-        // Update button text based on state
         const isExpanded = lyricsPanel.classList.contains("expanded");
         lyricsBtn.textContent = isExpanded ? "🎵 Hide Lyrics" : "🎵 Lyrics";
       };
       
-      // Update button text if panel is expanded
       if (expandedPanels.has(tab.id)) {
         lyricsBtn.textContent = "🎵 Hide Lyrics";
       }
-      
-      buttonContainer.appendChild(lyricsBtn);
     }
 
-    // Mute toggle button
-    const muteBtn = document.createElement("button");
-    muteBtn.textContent = tab.muted ? "Unmute 🔊" : "Mute 🔇";
-    muteBtn.className = "mute-btn";
-    muteBtn.title = tab.muted ? "Unmute this tab" : "Mute this tab";
-
-    muteBtn.onclick = async (e) => {
-      e.stopPropagation(); // Prevent li click (focus tab)
-      try {
-        await chrome.tabs.update(tab.id, { muted: !tab.muted });
-        // The tab will update → onUpdated listener in background will refresh storage → popup gets message → re-renders
-      } catch (err) {
-        console.error("Failed to toggle mute:", err);
-      }
-    };
-
-    // Play/Pause button
+    // Play/Pause button (will be placed below progress bar)
     const playPauseBtn = document.createElement("button");
-    // Determine initial label based on paused state
     const isPaused = tab.paused || !tab.audible;
-    playPauseBtn.textContent = isPaused ? "Play ▶️" : "Pause ⏸️";
     playPauseBtn.className = "play-pause-btn";
     playPauseBtn.title = isPaused ? "Resume playback" : "Pause playback";
+    
+    // Create div element for SVG mask icon
+    const playPauseIcon = document.createElement("div");
+    playPauseIcon.className = `play-pause-icon ${isPaused ? 'play' : 'pause'}`;
+    playPauseBtn.appendChild(playPauseIcon);
 
     playPauseBtn.onclick = async (e) => {
       e.stopPropagation();
@@ -448,14 +447,12 @@ async function renderTabs(tabs = []) {
         await chrome.scripting.executeScript({
           target: { tabId: tab.id },
           func: () => {
-            // 1. Try Spotify specific controls first
             const spotifyBtn = document.querySelector('[data-testid="control-button-playpause"]');
             if (spotifyBtn) {
               spotifyBtn.click();
               return true;
             }
 
-            // 2. Fallback to generic media elements
             const media = document.querySelectorAll('video, audio');
             let played = false;
             for (const m of media) {
@@ -470,23 +467,23 @@ async function renderTabs(tabs = []) {
           }
         });
         
-        // Optimistically update button text
-        const currentText = playPauseBtn.textContent;
-        if (currentText.includes("Play")) {
-             playPauseBtn.textContent = "Pause ⏸️";
-             playPauseBtn.title = "Pause playback";
-        } else {
-             playPauseBtn.textContent = "Play ▶️";
-             playPauseBtn.title = "Resume playback";
+        // Update icon based on new state
+        const icon = playPauseBtn.querySelector('.play-pause-icon');
+        if (icon) {
+          if (icon.classList.contains('play')) {
+            icon.classList.remove('play');
+            icon.classList.add('pause');
+            playPauseBtn.title = "Pause playback";
+          } else {
+            icon.classList.remove('pause');
+            icon.classList.add('play');
+            playPauseBtn.title = "Resume playback";
+          }
         }
-
       } catch (err) {
         console.error("Failed to toggle play/pause:", err);
       }
     };
-    
-    buttonContainer.appendChild(playPauseBtn);
-    buttonContainer.appendChild(muteBtn);
 
     // Click anywhere else on the row → focus the tab
     mainRow.onclick = () => {
@@ -496,12 +493,29 @@ async function renderTabs(tabs = []) {
 
     mainRow.appendChild(info);
     
-    // Add progress bar if available
+    // Add progress bar and play/pause button container if available
     if (progressBar) {
       mainRow.appendChild(progressBar);
+      
+      // Create control row for play/pause button (below progress bar)
+      const controlRow = document.createElement("div");
+      controlRow.className = "control-row";
+      controlRow.appendChild(playPauseBtn);
+      
+      // Add lyrics button if available
+      if (lyricsBtn) {
+        controlRow.appendChild(lyricsBtn);
+      }
+      
+      mainRow.appendChild(controlRow);
+    } else {
+      // For non-Spotify tabs, add play/pause in a control row
+      const controlRow = document.createElement("div");
+      controlRow.className = "control-row";
+      controlRow.appendChild(playPauseBtn);
+      mainRow.appendChild(controlRow);
     }
     
-    mainRow.appendChild(buttonContainer);
     li.appendChild(mainRow);
     
     // Add lyrics panel if it exists
