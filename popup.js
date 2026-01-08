@@ -156,9 +156,12 @@ async function renderTabs(tabs = []) {
 
     // Mute button (top right corner)
     const muteBtn = document.createElement("button");
-    muteBtn.textContent = tab.muted ? "🔊" : "🔇";
     muteBtn.className = "mute-btn";
     muteBtn.title = tab.muted ? "Unmute this tab" : "Mute this tab";
+    
+    const muteIcon = document.createElement("div");
+    muteIcon.className = `mute-icon ${tab.muted ? 'unmute' : 'mute'}`;
+    muteBtn.appendChild(muteIcon);
 
     muteBtn.onclick = async (e) => {
       e.stopPropagation();
@@ -242,6 +245,8 @@ async function renderTabs(tabs = []) {
             
             // Update mute button color
             muteBtn.style.color = finalTextColor;
+            // Ensure icon inherits color
+            muteIcon.style.color = finalTextColor;
             
             // Update play/pause button color (SVG will inherit via currentColor)
             const playPauseBtn = li.querySelector('.play-pause-btn');

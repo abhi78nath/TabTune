@@ -203,13 +203,36 @@ li:hover .album-image {
   transform: scale(0.95);
 }
 
+.mute-icon {
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  transition: all 0.2s ease-out;
+}
+
+.mute-icon.unmute {
+  -webkit-mask-image: url('assets/mute.svg');
+  mask-image: url('assets/mute.svg');
+}
+
+.mute-icon.mute {
+  -webkit-mask-image: url('assets/unmute.svg');
+  mask-image: url('assets/unmute.svg');
+}
+
 li.muted .mute-btn {
-  background: rgba(22, 163, 74, 0.9);
+  /* background: rgba(22, 163, 74, 0.9); */
   color: white;
 }
 
 li.muted .mute-btn:hover {
-  background: rgba(21, 128, 61, 1);
+  /* background: rgba(21, 128, 61, 1); */
 }
 
 /* Control row - for play/pause and lyrics buttons */
