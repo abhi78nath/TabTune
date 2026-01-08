@@ -276,6 +276,12 @@ async function renderTabs(tabs = []) {
               progressBarFill.style.background = finalTextColor;
               progressBarFill.style.opacity = "0.9";
             }
+
+            // Update separator color
+            const separator = li.querySelector('.control-separator');
+            if (separator) {
+              separator.style.background = finalTextColor;
+            }
           }
         };
         
@@ -378,12 +384,7 @@ async function renderTabs(tabs = []) {
       const lyricsIcon = document.createElement("div");
       lyricsIcon.className = "lyrics-icon";
 
-      const lyricsText = document.createElement("span");
-      lyricsText.className = "lyrics-text";
-      lyricsText.textContent = "Lyrics";
-
       lyricsBtn.appendChild(lyricsIcon);
-      lyricsBtn.appendChild(lyricsText);
       
       // Create lyrics panel
       lyricsPanel = document.createElement("div");
@@ -450,13 +451,7 @@ async function renderTabs(tabs = []) {
       lyricsBtn.onclick = async (e) => {
         e.stopPropagation();
         await toggleLyricsPanel(lyricsPanel, spotifyDetails.artist, spotifyDetails.title);
-        const isExpanded = lyricsPanel.classList.contains("expanded");
-        lyricsText.textContent = isExpanded ? "Hide Lyrics" : "Lyrics";
       };
-      
-      if (expandedPanels.has(tab.id)) {
-        lyricsText.textContent = "Hide Lyrics";
-      }
     }
 
     // Play/Pause button (will be placed below progress bar)
@@ -577,19 +572,23 @@ async function renderTabs(tabs = []) {
       const controlRow = document.createElement("div");
       controlRow.className = "control-row";
       
-      if (prevBtn) controlRow.appendChild(prevBtn);
-      controlRow.appendChild(playPauseBtn);
-      if (nextBtn) controlRow.appendChild(nextBtn);
+      const mediaControls = document.createElement("div");
+      mediaControls.className = "media-controls";
+      
+      if (prevBtn) mediaControls.appendChild(prevBtn);
+      mediaControls.appendChild(playPauseBtn);
+      if (nextBtn) mediaControls.appendChild(nextBtn);
+      
+      controlRow.appendChild(mediaControls);
+      
+      if (lyricsBtn) {
+        const separator = document.createElement("div");
+        separator.className = "control-separator";
+        controlRow.appendChild(separator);
+        controlRow.appendChild(lyricsBtn);
+      }
       
       mainRow.appendChild(controlRow);
-
-      // Add lyrics button in its own row below controls
-      if (lyricsBtn) {
-        const lyricsRow = document.createElement("div");
-        lyricsRow.className = "lyrics-row";
-        lyricsRow.appendChild(lyricsBtn);
-        mainRow.appendChild(lyricsRow);
-      }
     } else {
       // For non-Spotify tabs, add play/pause in a control row
       const controlRow = document.createElement("div");
