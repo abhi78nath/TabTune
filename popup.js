@@ -124,7 +124,24 @@ async function renderTabs(tabs = []) {
   list.innerHTML = "";
 
   if (tabs.length === 0) {
-    list.innerHTML = "<li>No tabs playing media right now</li>";
+    list.innerHTML = `
+      <li class="empty-state-item">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <!-- Feather Icon: music -->
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          </div>
+          <div class="empty-text">
+            <h3>No Media Playing</h3>
+            <p>Play music on Spotify, or YouTube to get started.</p>
+          </div>
+        </div>
+      </li>
+    `;
     return;
   }
 
