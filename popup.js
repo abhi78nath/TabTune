@@ -42,6 +42,10 @@ async function loadLyrics(panelElement, artist, title) {
   const contentEl = panelElement.querySelector(".lyrics-content");
   const errorEl = panelElement.querySelector(".lyrics-error");
 
+  // Store artist and title for staleness check
+  panelElement.dataset.artist = artist;
+  panelElement.dataset.title = title;
+
   loadingEl.style.display = "block";
   contentEl.style.display = "none";
   errorEl.style.display = "none";
@@ -141,7 +145,12 @@ async function renderTabs(tabs = []) {
         // Save loaded lyrics content if available
         const contentEl = panel.querySelector(".lyrics-content");
         if (contentEl && contentEl.style.display !== "none" && contentEl.innerHTML) {
-          loadedLyrics.set(id, contentEl.innerHTML);
+            // Save metadata to check for staleness
+            loadedLyrics.set(id, {
+                content: contentEl.innerHTML,
+                artist: panel.dataset.artist,
+                title: panel.dataset.title
+            });
         }
       }
     });
@@ -446,30 +455,24 @@ async function renderTabs(tabs = []) {
         const contentEl = lyricsPanel.querySelector(".lyrics-content");
         const errorEl = lyricsPanel.querySelector(".lyrics-error");
         
-        // Check if we have cached lyrics for this tab
-        if (loadedLyrics.has(tab.id)) {
+        // Check if we have cached lyrics for this tab AND it matches current song
+        const loadedData = loadedLyrics.get(tab.id);
+        const isSameSong = loadedData && 
+                          loadedData.artist === spotifyDetails.artist && 
+                          loadedData.title === spotifyDetails.title;
+
+        if (isSameSong) {
           loadingEl.style.display = "none";
-          contentEl.innerHTML = loadedLyrics.get(tab.id);
+          contentEl.innerHTML = loadedData.content;
           contentEl.style.display = "block";
           errorEl.style.display = "none";
           lyricsPanel.dataset.loaded = "true";
+          // Restore metadata
+          lyricsPanel.dataset.artist = loadedData.artist;
+          lyricsPanel.dataset.title = loadedData.title;
         } else {
-          loadingEl.style.display = "block";
-          contentEl.style.display = "none";
-          errorEl.style.display = "none";
-          
-          const cacheKey = `${spotifyDetails.artist}|${spotifyDetails.title}`;
-          
-          if (lyricsCache.has(cacheKey)) {
-            const cachedLyrics = lyricsCache.get(cacheKey);
-            loadingEl.style.display = "none";
-            contentEl.innerHTML = cachedLyrics;
-            contentEl.style.display = "block";
-            lyricsPanel.dataset.loaded = "true";
-          } else {
-            // Use loadLyrics helper instead of duplicated logic
-            loadLyrics(lyricsPanel, spotifyDetails.artist, spotifyDetails.title);
-          }
+          // If song changed or no lyrics loaded, load for new song
+          loadLyrics(lyricsPanel, spotifyDetails.artist, spotifyDetails.title);
         }
       }
       
