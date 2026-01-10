@@ -1,7 +1,7 @@
 // background.js (service worker)
 
 // Import Spotify extraction functionality
-importScripts('spotify-extractor.js');
+importScripts('utils/extractors/spotify-extractor.js');
 
 let lastPlayingTabsHash = null;
 let forceUpdate = false;
