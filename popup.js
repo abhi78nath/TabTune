@@ -36,6 +36,74 @@ function debouncedRenderTabs(tabs) {
   }, 300); // Wait 300ms before rendering
 }
 
+// Function to handle lyrics loading
+async function loadLyrics(panelElement, artist, title) {
+  const loadingEl = panelElement.querySelector(".lyrics-loading");
+  const contentEl = panelElement.querySelector(".lyrics-content");
+  const errorEl = panelElement.querySelector(".lyrics-error");
+
+  loadingEl.style.display = "block";
+  contentEl.style.display = "none";
+  errorEl.style.display = "none";
+  errorEl.innerHTML = ""; // Clear previous errors/buttons
+
+  // Check cache first
+  const cacheKey = `${artist}|${title}`;
+  if (lyricsCache.has(cacheKey)) {
+    const cachedLyrics = lyricsCache.get(cacheKey);
+    loadingEl.style.display = "none";
+    contentEl.innerHTML = cachedLyrics;
+    contentEl.style.display = "block";
+    panelElement.dataset.loaded = "true";
+    return;
+  }
+
+  try {
+    const result = await fetchLyrics(artist, title);
+    
+    loadingEl.style.display = "none";
+    
+    if (result.error) {
+      showError(errorEl, result.error, panelElement, artist, title);
+    } else if (result.lyrics) {
+      // Format lyrics with line breaks
+      const formattedLyrics = result.lyrics.replace(/\n/g, "<br>");
+      contentEl.innerHTML = formattedLyrics;
+      contentEl.style.display = "block";
+      panelElement.dataset.loaded = "true";
+      // Cache the lyrics
+      lyricsCache.set(cacheKey, formattedLyrics);
+    } else {
+      showError(errorEl, "No lyrics found", panelElement, artist, title);
+    }
+  } catch (error) {
+    loadingEl.style.display = "none";
+    showError(errorEl, "Failed to load lyrics: " + error.message, panelElement, artist, title);
+  }
+}
+
+function showError(errorEl, message, panelElement, artist, title) {
+  errorEl.innerHTML = `<div>${message}</div>`;
+  errorEl.style.display = "flex"; // Changed to flex for centering
+  
+  const retryBtn = document.createElement("button");
+  retryBtn.className = "retry-btn";
+  
+  const retryIcon = document.createElement("div");
+  retryIcon.className = "retry-icon";
+  retryBtn.appendChild(retryIcon);
+  
+  const btnText = document.createTextNode("Retry");
+  retryBtn.appendChild(btnText);
+
+  retryBtn.onclick = (e) => {
+    e.stopPropagation();
+    loadLyrics(panelElement, artist, title);
+  };
+  
+  errorEl.appendChild(retryBtn);
+}
+
 // Toggle lyrics panel function
 async function toggleLyricsPanel(panelElement, artist, title) {
   const isExpanded = panelElement.classList.contains("expanded");
@@ -47,51 +115,9 @@ async function toggleLyricsPanel(panelElement, artist, title) {
     // Expand panel and load lyrics if not already loaded
     panelElement.classList.add("expanded");
     
-    const loadingEl = panelElement.querySelector(".lyrics-loading");
-    const contentEl = panelElement.querySelector(".lyrics-content");
-    const errorEl = panelElement.querySelector(".lyrics-error");
-    
     // Only load if not already loaded
     if (!panelElement.dataset.loaded) {
-      loadingEl.style.display = "block";
-      contentEl.style.display = "none";
-      errorEl.style.display = "none";
-
-      // Check cache first
-      const cacheKey = `${artist}|${title}`;
-      if (lyricsCache.has(cacheKey)) {
-        const cachedLyrics = lyricsCache.get(cacheKey);
-        loadingEl.style.display = "none";
-        contentEl.innerHTML = cachedLyrics;
-        contentEl.style.display = "block";
-        panelElement.dataset.loaded = "true";
-      } else {
-        try {
-          const result = await fetchLyrics(artist, title);
-          
-          loadingEl.style.display = "none";
-          
-          if (result.error) {
-            errorEl.textContent = result.error;
-            errorEl.style.display = "block";
-          } else if (result.lyrics) {
-            // Format lyrics with line breaks
-            const formattedLyrics = result.lyrics.replace(/\n/g, "<br>");
-            contentEl.innerHTML = formattedLyrics;
-            contentEl.style.display = "block";
-            panelElement.dataset.loaded = "true";
-            // Cache the lyrics
-            lyricsCache.set(cacheKey, formattedLyrics);
-          } else {
-            errorEl.textContent = "No lyrics found";
-            errorEl.style.display = "block";
-          }
-        } catch (error) {
-          loadingEl.style.display = "none";
-          errorEl.textContent = "Failed to load lyrics: " + error.message;
-          errorEl.style.display = "block";
-        }
-      }
+      await loadLyrics(panelElement, artist, title);
     }
   }
 }
@@ -441,26 +467,8 @@ async function renderTabs(tabs = []) {
             contentEl.style.display = "block";
             lyricsPanel.dataset.loaded = "true";
           } else {
-            fetchLyrics(spotifyDetails.artist, spotifyDetails.title).then(result => {
-              loadingEl.style.display = "none";
-              if (result.error) {
-                errorEl.textContent = result.error;
-                errorEl.style.display = "block";
-              } else if (result.lyrics) {
-                const formattedLyrics = result.lyrics.replace(/\n/g, "<br>");
-                contentEl.innerHTML = formattedLyrics;
-                contentEl.style.display = "block";
-                lyricsPanel.dataset.loaded = "true";
-                lyricsCache.set(cacheKey, formattedLyrics);
-              } else {
-                errorEl.textContent = "No lyrics found";
-                errorEl.style.display = "block";
-              }
-            }).catch(error => {
-              loadingEl.style.display = "none";
-              errorEl.textContent = "Failed to load lyrics: " + error.message;
-              errorEl.style.display = "block";
-            });
+            // Use loadLyrics helper instead of duplicated logic
+            loadLyrics(lyricsPanel, spotifyDetails.artist, spotifyDetails.title);
           }
         }
       }
