@@ -219,8 +219,8 @@ li:hover .album-image {
 }
 
 .mute-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: currentColor;
   -webkit-mask-size: contain;
   mask-size: contain;
@@ -278,8 +278,6 @@ li:hover .close-btn {
 }
 
 .close-btn:hover {
-  background: rgba(255, 0, 0, 0.6);
-  /* Red background on hover */
   transform: scale(1.1);
   color: white;
 }
@@ -289,8 +287,8 @@ li:hover .close-btn {
 }
 
 .close-icon {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   background-color: currentColor;
   -webkit-mask-image: url('assets/x.svg');
   mask-image: url('assets/x.svg');
@@ -351,8 +349,8 @@ li:hover .close-btn {
 }
 
 .lyrics-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: currentColor;
   -webkit-mask-image: url('assets/lyrics.svg');
   mask-image: url('assets/lyrics.svg');
@@ -395,8 +393,8 @@ li:hover .close-btn {
 }
 
 .play-pause-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: currentColor;
   -webkit-mask-size: contain;
   mask-size: contain;
