@@ -281,13 +281,18 @@ async function renderTabs(tabs = []) {
       const infoText = document.createElement("div");
       infoText.className = "info-text";
 
-      const titleEl = document.createElement("strong");
+      const sourceEl = document.createElement("small");
+      sourceEl.className = "source-text";
+      sourceEl.textContent = new URL(tab.url).hostname;
+      infoText.appendChild(sourceEl);
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "title-text";
       titleEl.textContent = spotifyDetails.title || tab.title || "Untitled";
       infoText.appendChild(titleEl);
 
-      infoText.appendChild(document.createElement("br"));
-
-      const artistEl = document.createElement("small");
+      const artistEl = document.createElement("div");
+      artistEl.className = "artist-text";
       artistEl.textContent = spotifyDetails.artist || "Unknown Artist";
       infoText.appendChild(artistEl);
 
@@ -328,9 +333,15 @@ async function renderTabs(tabs = []) {
 
             // Apply text colors
             li.style.color = finalTextColor;
-            titleEl.style.color = finalTextColor;
-            artistEl.style.color = finalTextColor;
-            artistEl.style.opacity = "0.9";
+
+            const titleTextEl = infoText.querySelector('.title-text');
+            if (titleTextEl) titleTextEl.style.color = finalTextColor;
+
+            const artistTextEl = infoText.querySelector('.artist-text');
+            if (artistTextEl) artistTextEl.style.color = finalTextColor;
+
+            const sourceTextEl = infoText.querySelector('.source-text');
+            if (sourceTextEl) sourceTextEl.style.color = finalTextColor;
 
             // Update paused indicator
             const pausedIndicator = infoText.querySelector("small[style*='italic']");
@@ -392,8 +403,10 @@ async function renderTabs(tabs = []) {
       const pausedIndicator = tab.paused ? '<br><small style="color: #888; font-style: italic;">⏸ Paused</small>' : '';
       info.innerHTML = `
         <div class="info-text">
-          <strong>${tab.title || "Untitled"}</strong><br>
-          <small>${new URL(tab.url).hostname}</small>${pausedIndicator}
+          <small class="source-text">${new URL(tab.url).hostname}</small>
+          <div class="title-text">${tab.title || "Untitled"}</div>
+          <div class="artist-text">Unknown Artist</div>
+          ${pausedIndicator}
         </div>
       `;
     }

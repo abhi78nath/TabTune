@@ -12,17 +12,27 @@ async function fetchLyrics(artist, title) {
     return { error: 'Artist and title are required' };
   }
 
-  // Try primary source first
+  // 1. Try LRCLIB (Primary)
+  try {
+    const lrclibResult = await fetchFromLrclib(artist, title);
+    if (lrclibResult && lrclibResult.lyrics) {
+      return lrclibResult;
+    }
+  } catch (error) {
+    console.warn('LRCLIB lyrics source failed:', error);
+  }
+
+  // 2. Try OnRender (Secondary)
   try {
     const primaryResult = await fetchFromPrimary(artist, title);
     if (primaryResult && primaryResult.lyrics) {
       return primaryResult;
     }
   } catch (error) {
-    console.warn('Primary lyrics source failed:', error);
+    console.warn('OnRender lyrics source failed:', error);
   }
 
-  // Fallback to secondary source
+  // 3. Fallback to lyrics.ovh
   return await fetchFromSecondary(artist, title);
 }
 
@@ -74,5 +84,29 @@ async function fetchFromSecondary(artist, title) {
     console.error('Error fetching lyrics from secondary source:', error);
     return { error: error.message || 'Failed to fetch lyrics' };
   }
+}
+
+async function fetchFromLrclib(artist, title) {
+  const encodedArtist = encodeURIComponent(artist.trim());
+  const encodedTitle = encodeURIComponent(title.trim());
+
+  const apiUrl = `https://lrclib.net/api/get?artist_name=${encodedArtist}&track_name=${encodedTitle}`;
+
+  const response = await fetch(apiUrl);
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error(`LRCLIB API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  // LRCLIB returns { plainLyrics, syncedLyrics, instrumentation, ... }
+  if (data && data.plainLyrics) {
+    return { lyrics: data.plainLyrics };
+  } else if (data && data.instrumental) {
+    return { lyrics: "[Instrumental]" };
+  }
+
+  return null;
 }
 
