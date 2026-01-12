@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "TabTune",
+    "description": "Media Player and Lyrics Viewer",
+    "version": "1.0",
+    "permissions": [
+      "tabs",
+      "activeTab",
+      "storage",
+      "scripting"
+    ],
+    "host_permissions": [
+      "https://open.spotify.com/*",
+      "https://api.lyrics.ovh/*"
+    ],
+    "action": {
+      "default_popup": "index.html",
+      "default_icon": {
+        "48": "/main-icon-48.png",
+        "64": "/main-icon-64.png",
+        "128": "/main-icon-128.png",
+        "256": "/main-icon-256.png"
+      }
+    },
+    "background": {
+      "service_worker": "background.js",
+      "type": "module"
+    }
+  }
