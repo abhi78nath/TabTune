@@ -1,10 +1,10 @@
-# Media Control Extension
+# TabTune
 
 Ever been deep into work when a song hits *just right*?  
 You want the lyrics — *now* — but tab switching kills the vibe.
 
 This extension brings lyrics and media controls right to you.  
-It detects media playing in **any browser tab**, shows real-time progress, and lets you sing along with a single click — no distractions, no lost focus, just good music and productivity.
+It detects media playing in **any browser tab**, shows real-time progress, and lets you fetch lyrica if you want to sing along with a single click — no distractions, no lost focus, just good music and productivity.
 
 
 ## ✨ Key Features
@@ -13,9 +13,9 @@ It detects media playing in **any browser tab**, shows real-time progress, and l
 - **📜 One-Click Lyrics**: Fetches and display lyrics for the currently playing track with a single click.
 - **🕹️ Quick Controls**:
   - Play/Pause toggle
+  - Prev/Next switch
   - Mute/Unmute toggle
   - One-click tab focusing
-- **📊 Progress Tracking**: Includes a progress bar for real-time playback monitoring.
 - **🎧 Currently supports only Spotify**: Specialized metadata extraction for Spotify Web Player (Work in progress for other platforms).
 - **🎨 Dynamic Theming**: The UI automatically adapts its color scheme to match the current album art:
   - **Extracts dominant colors** for backgrounds.
@@ -27,8 +27,8 @@ It detects media playing in **any browser tab**, shows real-time progress, and l
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/abhi78nath/media-control-extension.git
-   cd media-control-extension
+   git clone https://github.com/abhi78nath/TabTune.git
+   cd TabTune
    ```
 
 2. **Load the extension in Chrome**:
