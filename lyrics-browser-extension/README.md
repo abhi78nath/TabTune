@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# TabTune
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ever been deep into work when a song hits *just right*?  
+You want the lyrics — *now* — but tab switching kills the vibe.
 
-Currently, two official plugins are available:
+**TabTune** brings lyrics and media controls right to you. It detects media playing in **any browser tab**, shows real-time progress, and lets you fetch lyrics to sing along with a single click — no distractions, no lost focus, just good music and productivity.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Key Features
 
-## React Compiler
+- **🌐 Universal Media Detection**: Automatically detects and lists media playing in any browser tab.
+- **📜 One-Click Lyrics**: Fetches and displays lyrics for the currently playing track with a single click.
+- **🕹️ Quick Controls**:
+  - Play/Pause toggle
+  - Prev/Next switch
+  - Mute/Unmute toggle
+  - One-click tab focusing
+- **🎧 Spotify Deep Integration**: Specialized metadata extraction for Spotify Web Player, including high-quality album art and real-time progress.
+- **🎨 Dynamic Theming**: The UI automatically adapts its color scheme to match the current album art:
+  - **Extracts dominant colors** for backgrounds.
+  - **Calculates accessible text colors** to ensure readability (WCAG compliant).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Tech Stack
 
-## Expanding the ESLint configuration
+- **Framework:** [React 19](https://react.dev/)
+- **Build Tool:** [Vite 7](https://vitejs.dev/)
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **API:** Chrome Extension Manifest V3
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### For Development
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/abhi78nath/TabTune.git
+   cd TabTune/lyrics-browser-extension
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. **Install & Build**:
+   ```bash
+   bun install
+   bun run build
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+3. **Load the extension in Chrome**:
+   - Open Chrome and navigate to `chrome://extensions/`
+   - Enable **Developer mode** (top right corner).
+   - Click **Load unpacked** and select the `lyrics-browser-extension/dist` directory.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## � Technical Overview
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The version in this directory is a high-performance port built with **React** and **TypeScript**.
+
+### Core Components
+
+- **`manifest.json`**: Extension configuration and permissions.
+- **`background.ts`**: Service worker monitoring tab states and maintaining the media registry.
+- **`App.tsx` & `components/`**: The modern React-based user interface.
+- **`services/lyrics-service.ts`**: Integration with lyrics APIs with fallback support.
+- **`utils/dominant-color.ts`**: Image processing for color quantization and palette generation.
+- **`utils/readable-text-color.ts`**: Accessibility algorithm for dynamic contrast.
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+Built with ❤️ by [Abhinath](https://github.com/abhi78nath)
