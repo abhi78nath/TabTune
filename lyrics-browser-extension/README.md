@@ -23,7 +23,6 @@ You want the lyrics — *now* — but tab switching kills the vibe.
 
 - **Framework:** [React 19](https://react.dev/)
 - **Build Tool:** [Vite 7](https://vitejs.dev/)
-- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **API:** Chrome Extension Manifest V3
 
@@ -64,7 +63,3 @@ The version in this directory is a high-performance port built with **React** an
 ## 📄 License
 
 This project is licensed under the MIT License.
-
----
-
-Built with ❤️ by [Abhinath](https://github.com/abhi78nath)
