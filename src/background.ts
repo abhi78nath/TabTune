@@ -2,6 +2,8 @@ import { extractSpotifySongDetails } from './utils/extractors/spotify-extractor'
 import type { SpotifySongDetails } from './utils/extractors/spotify-extractor';
 import { extractYouTubeMusicSongDetails } from './utils/extractors/youtube-music-extractor';
 import type { YouTubeMusicSongDetails } from './utils/extractors/youtube-music-extractor';
+import { extractYouTubeSongDetails } from './utils/extractors/youtube-extractor';
+import type { YouTubeSongDetails } from './utils/extractors/youtube-extractor';
 
 let lastPlayingTabsHash: string | null = null;
 let forceUpdate = false;
@@ -74,6 +76,32 @@ function getYouTubeMusicSongDetails(tabId: number) {
     );
 }
 
+function getYouTubeSongDetails(tabId: number) {
+    chrome.scripting.executeScript(
+        {
+            target: { tabId: tabId },
+            func: extractYouTubeSongDetails,
+        },
+        (results: { result: YouTubeSongDetails; }[]) => {
+            if (chrome.runtime.lastError) {
+                console.error(
+                    "Error extracting YouTube details:",
+                    chrome.runtime.lastError.message
+                );
+                return;
+            }
+
+            if (results && results[0] && results[0].result) {
+                const details = results[0].result as YouTubeSongDetails;
+                // console.log("🎵 YouTube Song Details:", details);
+
+                // Store song details in chrome.storage with tabId as key
+                chrome.storage.local.set({ [`youtubeDetails_${tabId}`]: details });
+            }
+        }
+    );
+}
+
 function updateMediaTabs() {
     chrome.tabs.query({}, (tabs: any[]) => {
         const now = Date.now();
@@ -124,6 +152,8 @@ function updateMediaTabs() {
                 getSpotifySongDetails(tab.id);
             } else if (tab.url && tab.url.includes('music.youtube.com')) {
                 getYouTubeMusicSongDetails(tab.id);
+            } else if (tab.url && tab.url.includes('youtube.com')) {
+                getYouTubeSongDetails(tab.id);
             }
         });
 
@@ -180,7 +210,8 @@ chrome.storage.onChanged.addListener((changes: {}, areaName: string) => {
         // Check if any Spotify or YouTube Music details were updated
         const spotifyDetailChanged = Object.keys(changes).some(key => key.startsWith('spotifyDetails_'));
         const youtubeMusicDetailChanged = Object.keys(changes).some(key => key.startsWith('youtubeMusicDetails_'));
-        if (spotifyDetailChanged || youtubeMusicDetailChanged) {
+        const youtubeDetailChanged = Object.keys(changes).some(key => key.startsWith('youtubeDetails_'));
+        if (spotifyDetailChanged || youtubeMusicDetailChanged || youtubeDetailChanged) {
             // Force an update when Spotify details change (ignore hash check)
             forceUpdate = true;
             updateMediaTabs();

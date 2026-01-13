@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import type { MediaTab } from "../hooks/useMediaTabs";
 import { useSpotifyDetails } from "../hooks/useSpotifyDetails";
 import { useYouTubeMusicDetails } from "../hooks/useYouTubeMusicDetails";
+import { useYouTubeDetails } from "../hooks/useYouTubeDetails";
 import { getDominantColors, type RGB } from "../utils/dominant-color";
 import { getReadableTextColor } from "../utils/readable-text-color";
 import { ProgressBar } from "./ProgressBar";
@@ -15,11 +16,14 @@ interface MediaItemProps {
 export function MediaItem({ tab }: MediaItemProps) {
     const isSpotify = tab.url?.includes("open.spotify.com");
     const isYouTubeMusic = tab.url?.includes("music.youtube.com");
+    // Only match youtube.com if it's NOT music.youtube.com
+    const isYouTube = tab.url?.includes("youtube.com") && !isYouTubeMusic;
 
     const spotifyDetails = useSpotifyDetails(tab.id);
     const youtubeMusicDetails = useYouTubeMusicDetails(tab.id);
+    const youtubeDetails = useYouTubeDetails(tab.id);
 
-    const mediaDetails = isSpotify ? spotifyDetails : (isYouTubeMusic ? youtubeMusicDetails : null);
+    const mediaDetails = isSpotify ? spotifyDetails : (isYouTubeMusic ? youtubeMusicDetails : (isYouTube ? youtubeDetails : null));
     const [dominantColor, setDominantColor] = useState<RGB | null>(null);
     const [textColor, setTextColor] = useState<string>("var(--text-color)");
     const [lyricsExpanded, setLyricsExpanded] = useState(false);
@@ -138,6 +142,9 @@ export function MediaItem({ tab }: MediaItemProps) {
 
                     const ytBtn = document.querySelector('.previous-button');
                     if (ytBtn) (ytBtn as HTMLElement).click();
+
+                    const ytpBtn = document.querySelector('.ytp-prev-button');
+                    if (ytpBtn) (ytpBtn as HTMLElement).click();
                 }
             });
         } catch (err) {
@@ -156,6 +163,9 @@ export function MediaItem({ tab }: MediaItemProps) {
 
                     const ytBtn = document.querySelector('.next-button');
                     if (ytBtn) (ytBtn as HTMLElement).click();
+
+                    const ytpBtn = document.querySelector('.ytp-next-button');
+                    if (ytpBtn) (ytpBtn as HTMLElement).click();
                 }
             });
         } catch (err) {
@@ -223,8 +233,8 @@ export function MediaItem({ tab }: MediaItemProps) {
                     <div className="close-icon" style={{ backgroundColor: textColor }}></div>
                 </div>
 
-                {/* Progress Bar (Spotify & YouTube Music) */}
-                {(isSpotify || isYouTubeMusic) && mediaDetails && mediaDetails.duration && (
+                {/* Progress Bar (Spotify, YouTube Music, YouTube) */}
+                {(isSpotify || isYouTubeMusic || isYouTube) && mediaDetails && mediaDetails.duration && (
                     <ProgressBar
                         duration={mediaDetails.duration}
                         currentTime={mediaDetails.currentTime}
@@ -237,7 +247,7 @@ export function MediaItem({ tab }: MediaItemProps) {
                 {/* Controls */}
                 <div className="control-row">
                     <div className="media-controls">
-                        {(isSpotify || isYouTubeMusic) && (
+                        {(isSpotify || isYouTubeMusic || isYouTube) && (
                             <button className="play-pause-btn" style={{ color: textColor }} onClick={handlePrev} title="Previous Track">
                                 <div className="play-pause-icon prev" style={{ backgroundColor: textColor }}></div>
                             </button>
@@ -245,14 +255,14 @@ export function MediaItem({ tab }: MediaItemProps) {
                         <button className="play-pause-btn" style={{ color: textColor }} onClick={handlePlayPause} title={isPaused ? "Resume playback" : "Pause playback"}>
                             <div className={`play-pause-icon ${isPaused ? 'play' : 'pause'}`} style={{ backgroundColor: textColor }}></div>
                         </button>
-                        {(isSpotify || isYouTubeMusic) && (
+                        {(isSpotify || isYouTubeMusic || isYouTube) && (
                             <button className="play-pause-btn" style={{ color: textColor }} onClick={handleNext} title="Next Track">
                                 <div className="play-pause-icon next" style={{ backgroundColor: textColor }}></div>
                             </button>
                         )}
                     </div>
 
-                    {(isSpotify || isYouTubeMusic) && mediaDetails?.title && mediaDetails?.artist && !isAd && (
+                    {(isSpotify || isYouTubeMusic || isYouTube) && mediaDetails?.title && mediaDetails?.artist && !isAd && (
                         <>
                             <div className="control-separator" style={{ backgroundColor: textColor }}></div>
                             <button
@@ -280,7 +290,7 @@ export function MediaItem({ tab }: MediaItemProps) {
             </div>
 
             {/* Lyrics Panel */}
-            {(isSpotify || isYouTubeMusic) && !isAd && (
+            {(isSpotify || isYouTubeMusic || isYouTube) && !isAd && (
                 <LyricsPanel
                     artist={mediaDetails?.artist || ""}
                     title={mediaDetails?.title || ""}
