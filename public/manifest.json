@@ -11,6 +11,7 @@
     ],
     "host_permissions": [
       "https://open.spotify.com/*",
+      "https://music.youtube.com/*",
       "https://api.lyrics.ovh/*"
     ],
     "action": {
