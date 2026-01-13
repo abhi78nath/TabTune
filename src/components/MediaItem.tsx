@@ -175,8 +175,9 @@ export function MediaItem({ tab }: MediaItemProps) {
     const textStyle = { color: textColor };
 
     // Dynamic props
-    const title = mediaDetails?.title || tab.title || "Untitled";
-    const artist = mediaDetails?.artist || "Unknown Artist";
+    const isAd = (mediaDetails as any)?.isAd;
+    const title = isAd ? "Sponsored Ad" : (mediaDetails?.title || tab.title || "Untitled");
+    const artist = isAd ? "YouTube Music" : (mediaDetails?.artist || "Unknown Artist");
     const image = mediaDetails?.image;
     const isPaused = tab.paused || !tab.audible; // Fallback logic same as popup.js
 
@@ -194,7 +195,7 @@ export function MediaItem({ tab }: MediaItemProps) {
             <div className="media-row" onClick={focusTab}>
                 {/* Info Section */}
                 <div className="info">
-                    {image && (
+                    {image && !isAd && (
                         <img
                             ref={imgRef}
                             src={image}
@@ -251,7 +252,7 @@ export function MediaItem({ tab }: MediaItemProps) {
                         )}
                     </div>
 
-                    {(isSpotify || isYouTubeMusic) && mediaDetails?.title && mediaDetails?.artist && (
+                    {(isSpotify || isYouTubeMusic) && mediaDetails?.title && mediaDetails?.artist && !isAd && (
                         <>
                             <div className="control-separator" style={{ backgroundColor: textColor }}></div>
                             <button
@@ -279,7 +280,7 @@ export function MediaItem({ tab }: MediaItemProps) {
             </div>
 
             {/* Lyrics Panel */}
-            {(isSpotify || isYouTubeMusic) && (
+            {(isSpotify || isYouTubeMusic) && !isAd && (
                 <LyricsPanel
                     artist={mediaDetails?.artist || ""}
                     title={mediaDetails?.title || ""}

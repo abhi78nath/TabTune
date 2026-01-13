@@ -7,6 +7,7 @@ export interface YouTubeMusicSongDetails {
     duration: string | null;
     currentTime: string | null;
     progress: string | null;
+    isAd: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
         duration: null,
         currentTime: null,
         progress: null,
+        isAd: false,
     };
 
     // YouTube Music DOM Selectors
@@ -30,6 +32,16 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
     const imageElement = document.querySelector(".image.style-scope.ytmusic-player-bar");
     const timeInfoElement = document.querySelector(".time-info.style-scope.ytmusic-player-bar");
     const progressBarElement = document.querySelectorAll("#progress-bar")[0]; // Slider
+    const adBadgeElement = document.querySelector(".badge-style-type-ad-stark.style-scope.ytmusic-player-bar");
+
+    // Check for Ad
+    if (adBadgeElement) {
+        const isHidden = adBadgeElement.hasAttribute("hidden");
+        const text = adBadgeElement.textContent?.trim() || (adBadgeElement as HTMLElement).innerText?.trim();
+        if (!isHidden && text === "Sponsored") {
+            songDetails.isAd = true;
+        }
+    }
 
     if (titleElement) {
         songDetails.title = titleElement.textContent?.trim() || (titleElement as HTMLElement).innerText?.trim() || null;
