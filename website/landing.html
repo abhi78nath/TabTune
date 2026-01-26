@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabTune - Lyrics and media controls. Without tab switching.</title>
+    <meta name="description"
+        content="Stay in the flow. TabTune detects media playing in any browser tab and shows lyrics, progress, and controls instantly — no tab switching, no broken focus.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-primary': '#000000',
+                        'bg-secondary': '#0B0F14',
+                        'surface': '#111827',
+                        'primary-green': '#22C55E',
+                        'accent-green': '#4ADE80',
+                        'text-primary': '#F9FAFB',
+                        'text-body': '#CBD5E1',
+                        'text-muted': '#94A3B8',
+                        'border': '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-glow {
+            background: radial-gradient(circle at center, rgba(34, 197, 94, 0.18) 0%, rgba(0, 0, 0, 1) 60%);
+        }
+
+        .floating-widget {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-bg-primary text-text-body antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-bg-primary/80 backdrop-blur-md border-b border-border z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-text-primary font-bold text-xl">TabTune</div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-text-muted hover:text-text-primary transition-colors">Features</a>
+                    <a href="#how-it-works" class="text-text-muted hover:text-text-primary transition-colors">How It
+                        Works</a>
+                    <button
+                        class="bg-primary-green text-bg-primary px-6 py-2 rounded-lg font-medium hover:bg-accent-green transition-colors"><a
+                            href="https://drive.google.com/file/d/1VksH9p2by-bE_TP2Am_eyT0TLZCD7sFj/view?usp=sharing">Get
+                            TabTune</a></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center hero-glow">
+        <div class="max-w-7xl mx-auto px-6 py-20">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <h1 class="text-5xl lg:text-6xl font-bold text-text-primary leading-tight">
+                        Stay in the flow. <br>
+                        <span class="text-primary-green">Your music comes to you.</span>
+                    </h1>
+                    <p class="text-xl text-text-body max-w-2xl">
+                        TabTune detects media playing in any browser tab and shows lyrics, progress, and controls
+                        instantly — no tab switching, no broken focus.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button
+                            class="bg-primary-green text-bg-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-accent-green transition-all transform hover:scale-105"><a
+                                href="https://drive.google.com/file/d/1VksH9p2by-bE_TP2Am_eyT0TLZCD7sFj/view?usp=sharing">Get
+                                TabTune</a>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Floating Widget Mockup -->
+                <div class="relative">
+                    <div
+                        class="floating-widget bg-surface border border-border rounded-2xl p-6 shadow-2xl max-w-sm mx-auto">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg"></div>
+                            <div>
+                                <div class="text-text-primary font-semibold">Midnight City</div>
+                                <div class="text-text-muted text-sm">M83</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="bg-border h-1 rounded-full">
+                                <div class="bg-primary-green h-1 rounded-full w-2/3"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-text-muted mt-1">
+                                <span>2:14</span>
+                                <span>4:01</span>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="flex items-center justify-center space-x-4 mb-4">
+                            <button class="text-text-muted hover:text-primary-green">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
+                                </svg>
+                            </button>
+                            <button class="bg-primary-green text-bg-primary p-2 rounded-full hover:bg-accent-green">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <button class="text-text-muted hover:text-primary-green">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Lyrics Preview -->
+                        <div class="bg-bg-secondary rounded-lg p-3 text-sm">
+                            <div class="text-primary-green mb-1">♪ Current lyrics</div>
+                            <div class="text-text-body italic">
+                                "Waiting in a car<br>
+                                Waiting for a ride in the dark..."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-bg-secondary">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-text-primary mb-4">Everything you need to stay focused</h2>
+                <p class="text-xl text-text-body">Powerful features designed for productivity</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div
+                    class="bg-surface border border-border rounded-xl p-8 hover:border-primary-green/30 transition-colors">
+                    <div class="w-12 h-12 bg-accent-green/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Universal Media Detection</h3>
+                    <p class="text-text-body">Automatically detects media playing in any browser tab.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div
+                    class="bg-surface border border-border rounded-xl p-8 hover:border-primary-green/30 transition-colors">
+                    <div class="w-12 h-12 bg-accent-green/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">One-Click Lyrics</h3>
+                    <p class="text-text-body">Fetch and display real-time lyrics for the current track instantly.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div
+                    class="bg-surface border border-border rounded-xl p-8 hover:border-primary-green/30 transition-colors">
+                    <div class="w-12 h-12 bg-accent-green/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Quick Media Controls</h3>
+                    <p class="text-text-body">Play/Pause, Previous/Next, Mute/Unmute, and one-click tab focus.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div
+                    class="bg-surface border border-border rounded-xl p-8 hover:border-primary-green/30 transition-colors">
+                    <div class="w-12 h-12 bg-accent-green/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Deep Platform Integration</h3>
+                    <p class="text-text-body">Seamless support for Spotify, YouTube, and YouTube Music with accurate
+                        metadata.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div
+                    class="bg-surface border border-border rounded-xl p-8 hover:border-primary-green/30 transition-colors">
+                    <div class="w-12 h-12 bg-accent-green/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Dynamic Album-Based Theming</h3>
+                    <p class="text-text-body">UI adapts to album art colors with WCAG-compliant contrast for
+                        readability.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div
+                    class="bg-surface border border-border rounded-xl p-8 hover:border-primary-green/30 transition-colors">
+                    <div class="w-12 h-12 bg-accent-green/20 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Privacy First</h3>
+                    <p class="text-text-body">All processing happens locally. No data collection, no tracking.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-text-primary mb-4">How It Works</h2>
+                <p class="text-xl text-text-body">Three simple steps to music without distraction</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div
+                        class="w-16 h-16 bg-primary-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-2xl font-bold text-primary-green">1</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Play music in any tab</h3>
+                    <p class="text-text-body">Start playing music on Spotify, YouTube, or any supported platform.</p>
+                </div>
+
+                <div class="text-center">
+                    <div
+                        class="w-16 h-16 bg-primary-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-2xl font-bold text-primary-green">2</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">TabTune detects it instantly</h3>
+                    <p class="text-text-body">Our extension automatically recognizes when media starts playing.</p>
+                </div>
+
+                <div class="text-center">
+                    <div
+                        class="w-16 h-16 bg-primary-green/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-2xl font-bold text-primary-green">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-2">Lyrics and controls appear</h3>
+                    <p class="text-text-body">Access everything you need without leaving your current tab.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productivity Value Section -->
+    <section class="py-20 bg-bg-secondary">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-text-primary mb-8">Music without the context switching</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="text-center">
+                        <div class="text-primary-green text-2xl mb-2">🎯</div>
+                        <h3 class="font-semibold text-text-primary">No more hunting tabs</h3>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-primary-green text-2xl mb-2">🧠</div>
+                        <h3 class="font-semibold text-text-primary">No broken concentration</h3>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-primary-green text-2xl mb-2">⚡</div>
+                        <h3 class="font-semibold text-text-primary">Perfect for coding</h3>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-primary-green text-2xl mb-2">📚</div>
+                        <h3 class="font-semibold text-text-primary">Ideal for deep work</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-surface border border-border rounded-xl p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-4"></div>
+                        <div>
+                            <div class="font-semibold text-text-primary">Alex Chen</div>
+                            <div class="text-text-muted text-sm">Full-stack Developer</div>
+                        </div>
+                    </div>
+                    <p class="text-text-body italic">"TabTune keeps me focused while I code. No more losing my train of
+                        thought just to skip a song."</p>
+                </div>
+
+                <div class="bg-surface border border-border rounded-xl p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mr-4"></div>
+                        <div>
+                            <div class="font-semibold text-text-primary">Sarah Williams</div>
+                            <div class="text-text-muted text-sm">UX Designer</div>
+                        </div>
+                    </div>
+                    <p class="text-text-body italic">"Lyrics without leaving my workspace is a game changer. Perfect for
+                        those creative flow sessions."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="py-20 bg-bg-secondary">
+        <div class="max-w-4xl mx-auto text-center px-6">
+            <h2 class="text-4xl lg:text-5xl font-bold text-text-primary mb-6">
+                Your music deserves less friction.
+            </h2>
+            <p class="text-xl text-text-body mb-8">
+                Join thousands of professionals who've eliminated tab switching from their workflow.
+            </p>
+            <button
+                class="bg-primary-green text-bg-primary px-12 py-4 rounded-lg font-semibold text-xl hover:bg-accent-green transition-all transform hover:scale-105 mb-4"><a
+                    href="https://drive.google.com/file/d/1VksH9p2by-bE_TP2Am_eyT0TLZCD7sFj/view?usp=sharing">Get
+                    TabTune</a>
+            </button>
+            <p class="text-text-muted">Free browser extension • No signup required</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-border">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-text-primary font-bold text-xl mb-4 md:mb-0">TabTune</div>
+                <div class="flex space-x-6 text-text-muted">
+                    <a href="#" class="hover:text-text-primary transition-colors">Privacy</a>
+                    <a href="#" class="hover:text-text-primary transition-colors">Terms</a>
+                    <a href="#" class="hover:text-text-primary transition-colors">Support</a>
+                </div>
+            </div>
+            <div class="text-center text-text-muted text-sm mt-8">
+                © 2024 TabTune. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
