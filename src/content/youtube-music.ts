@@ -1,20 +1,10 @@
 
-export interface YouTubeMusicSongDetails {
-    title: string | null;
-    artist: string | null;
-    album: string | null;
-    image: string | null;
-    duration: string | null;
-    currentTime: string | null;
-    progress: string | null;
-    isAd: boolean;
-}
+import type { YouTubeMusicSongDetails } from '../types';
 
-/**
- * Extracts song details from YouTube Music
- * This function is injected into YouTube Music tabs
- */
-export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
+let lastDetails: YouTubeMusicSongDetails | null = null;
+let lastUrl = location.href;
+
+function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
     const songDetails: YouTubeMusicSongDetails = {
         title: null,
         artist: null,
@@ -26,15 +16,13 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
         isAd: false,
     };
 
-    // YouTube Music DOM Selectors
     const titleElement = document.querySelector(".content-info-wrapper .title");
     const bylineElement = document.querySelector(".content-info-wrapper .byline");
     const imageElement = document.querySelector(".image.style-scope.ytmusic-player-bar");
     const timeInfoElement = document.querySelector(".time-info.style-scope.ytmusic-player-bar");
-    const progressBarElement = document.querySelectorAll("#progress-bar")[0]; // Slider
+    const progressBarElement = document.querySelectorAll("#progress-bar")[0];
     const adBadgeElement = document.querySelector(".badge-style-type-ad-stark.style-scope.ytmusic-player-bar");
 
-    // Check for Ad
     if (adBadgeElement) {
         const isHidden = adBadgeElement.hasAttribute("hidden");
         const text = adBadgeElement.textContent?.trim() || (adBadgeElement as HTMLElement).innerText?.trim();
@@ -48,7 +36,6 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
     }
 
     if (bylineElement) {
-        // format: "Artist • Album • Year" or just "Artist • Album" or "Artist"
         const text = bylineElement.textContent?.trim() || (bylineElement as HTMLElement).innerText?.trim() || "";
         const parts = text.split("•").map(s => s.trim());
 
@@ -65,7 +52,6 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
     }
 
     if (timeInfoElement) {
-        // format: "1:23 / 4:56"
         const text = timeInfoElement.textContent?.trim() || (timeInfoElement as HTMLElement).innerText?.trim() || "";
         const parts = text.split("/").map(s => s.trim());
         if (parts.length >= 2) {
@@ -74,7 +60,6 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
         }
     }
 
-    // Try to get progress from slider aria-valuenow or calculate
     if (progressBarElement) {
         const slider = progressBarElement as HTMLElement;
         const valueNow = slider.getAttribute("aria-valuenow");
@@ -89,14 +74,12 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
         }
     }
 
-    // Fallback Media Session API (often reliable for basic info)
     if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
         const metadata = navigator.mediaSession.metadata;
         if (!songDetails.title) songDetails.title = metadata.title;
         if (!songDetails.artist) songDetails.artist = metadata.artist;
         if (!songDetails.album) songDetails.album = metadata.album;
         if (!songDetails.image && metadata.artwork && metadata.artwork.length > 0) {
-            // Get the largest artwork
             const artwork = [...metadata.artwork].sort((a, b) => {
                 const widthA = parseInt(a.sizes?.split('x')[0] || "0");
                 const widthB = parseInt(b.sizes?.split('x')[0] || "0");
@@ -108,3 +91,60 @@ export function extractYouTubeMusicSongDetails(): YouTubeMusicSongDetails {
 
     return songDetails;
 }
+
+function notify() {
+    try {
+        const details = extractYouTubeMusicSongDetails();
+        if (JSON.stringify(details) !== JSON.stringify(lastDetails)) {
+            lastDetails = details;
+            chrome.runtime.sendMessage({
+                action: 'MEDIA_UPDATE',
+                platform: 'youtube-music',
+                details
+            }).catch(() => { });
+        }
+    } catch (e) {
+        console.error("TabTune Error:", e);
+    }
+}
+
+const observer = new MutationObserver(() => {
+    notify();
+});
+
+const app = document.querySelector("ytmusic-app") || document.body;
+observer.observe(app, {
+    childList: true,
+    subtree: true,
+    attributes: true
+});
+
+setInterval(notify, 1000);
+
+setInterval(() => {
+    if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        notify();
+    }
+}, 2000);
+
+chrome.runtime.onMessage.addListener((msg: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    if (msg.action === 'MEDIA_CONTROL') {
+        const command = msg.command;
+        try {
+            if (command === 'playPause') {
+                (document.querySelector('#play-pause-button') as HTMLElement)?.click();
+            } else if (command === 'next') {
+                (document.querySelector('.next-button') as HTMLElement)?.click();
+            } else if (command === 'prev') {
+                (document.querySelector('.previous-button') as HTMLElement)?.click();
+            }
+            sendResponse({ status: 'ok' });
+        } catch (e) {
+            console.error("Media control failed", e);
+            sendResponse({ status: 'error' });
+        }
+    }
+});
+
+notify();

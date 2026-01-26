@@ -1,17 +1,9 @@
-import { extractSpotifySongDetails } from './utils/extractors/spotify-extractor';
-import type { SpotifySongDetails } from './utils/extractors/spotify-extractor';
-import { extractYouTubeMusicSongDetails } from './utils/extractors/youtube-music-extractor';
-import type { YouTubeMusicSongDetails } from './utils/extractors/youtube-music-extractor';
-import { extractYouTubeSongDetails } from './utils/extractors/youtube-extractor';
-import type { YouTubeSongDetails } from './utils/extractors/youtube-extractor';
 
 let lastPlayingTabsHash: string | null = null;
 let forceUpdate = false;
-// Track recently playing tabs (tabId -> timestamp) to show paused tabs
+// Track recently playing tabs (tabId -> timestamp)
 const recentlyPlayingTabs = new Map<number, number>();
-// Track manually removed tabs to prevent them from showing up immediately if they are still audible
 const manuallyRemovedTabs = new Set<number>();
-// const RECENT_TAB_TIMEOUT = 30000; // Keep paused tabs visible for 30 seconds (Used in original?)
 
 interface MediaTab {
     id: number;
@@ -21,85 +13,6 @@ interface MediaTab {
     audible: boolean;
     paused: boolean;
     muted: boolean;
-}
-
-function getSpotifySongDetails(tabId: number) {
-    chrome.scripting.executeScript(
-        {
-            target: { tabId: tabId },
-            func: extractSpotifySongDetails,
-        },
-        (results: { result: SpotifySongDetails; }[]) => {
-            if (chrome.runtime.lastError) {
-                console.error(
-                    "Error extracting Spotify details:",
-                    chrome.runtime.lastError.message
-                );
-                return;
-            }
-
-            if (results && results[0] && results[0].result) {
-                const details = results[0].result as SpotifySongDetails;
-                // console.log("🎵 Spotify Song Details:", details);
-
-                // Store song details in chrome.storage with tabId as key
-                chrome.storage.local.set({ [`spotifyDetails_${tabId}`]: details });
-            }
-        }
-    );
-}
-
-function getYouTubeMusicSongDetails(tabId: number) {
-    chrome.scripting.executeScript(
-        {
-            target: { tabId: tabId },
-            func: extractYouTubeMusicSongDetails,
-        },
-        (results: { result: YouTubeMusicSongDetails; }[]) => {
-            if (chrome.runtime.lastError) {
-                console.error(
-                    "Error extracting YouTube Music details:",
-                    chrome.runtime.lastError.message
-                );
-                return;
-            }
-
-            if (results && results[0] && results[0].result) {
-                const details = results[0].result as YouTubeMusicSongDetails;
-                // console.log("🎵 YouTube Music Song Details:", details);
-
-                // Store song details in chrome.storage with tabId as key
-                // We'll use a prefix 'youtubeMusicDetails_' to distinguish
-                chrome.storage.local.set({ [`youtubeMusicDetails_${tabId}`]: details });
-            }
-        }
-    );
-}
-
-function getYouTubeSongDetails(tabId: number) {
-    chrome.scripting.executeScript(
-        {
-            target: { tabId: tabId },
-            func: extractYouTubeSongDetails,
-        },
-        (results: { result: YouTubeSongDetails; }[]) => {
-            if (chrome.runtime.lastError) {
-                console.error(
-                    "Error extracting YouTube details:",
-                    chrome.runtime.lastError.message
-                );
-                return;
-            }
-
-            if (results && results[0] && results[0].result) {
-                const details = results[0].result as YouTubeSongDetails;
-                // console.log("🎵 YouTube Song Details:", details);
-
-                // Store song details in chrome.storage with tabId as key
-                chrome.storage.local.set({ [`youtubeDetails_${tabId}`]: details });
-            }
-        }
-    );
 }
 
 function updateMediaTabs() {
@@ -113,8 +26,6 @@ function updateMediaTabs() {
             }
         });
 
-        // Include tabs that are currently audible OR were recently audible
-        // AND are not manually removed
         const playingTabs: MediaTab[] = tabs
             .filter(tab => tab.id && (tab.audible === true || recentlyPlayingTabs.has(tab.id)) && !manuallyRemovedTabs.has(tab.id))
             .map(tab => ({
@@ -123,12 +34,10 @@ function updateMediaTabs() {
                 url: tab.url,
                 windowId: tab.windowId,
                 audible: tab.audible || false,
-                paused: !tab.audible && recentlyPlayingTabs.has(tab.id!) || false, // Mark as paused if not audible but recently was
+                paused: !tab.audible && recentlyPlayingTabs.has(tab.id!) || false,
                 muted: tab.mutedInfo?.muted || false
             }));
 
-        // Create a simple hash to detect actual changes
-        // Include id, muted, audible, paused, title, and url to catch song changes
         const currentHash = JSON.stringify(playingTabs.map(t => ({
             id: t.id,
             muted: t.muted,
@@ -138,90 +47,43 @@ function updateMediaTabs() {
             url: t.url
         })).sort((a, b) => a.id - b.id));
 
-        // Only update if something actually changed (unless forced)
         if (!forceUpdate && currentHash === lastPlayingTabsHash && lastPlayingTabsHash !== null) {
-            return; // No changes, skip update (but allow first update)
+            return;
         }
 
         lastPlayingTabsHash = currentHash;
-        forceUpdate = false; // Reset force flag
+        forceUpdate = false;
 
-        // Check for Spotify tabs and get song details
-        playingTabs.forEach(tab => {
-            if (tab.url && tab.url.includes('open.spotify.com')) {
-                getSpotifySongDetails(tab.id);
-            } else if (tab.url && tab.url.includes('music.youtube.com')) {
-                getYouTubeMusicSongDetails(tab.id);
-            } else if (tab.url && tab.url.includes('youtube.com')) {
-                getYouTubeSongDetails(tab.id);
-            }
-        });
-
-        // Optional: store in chrome.storage for popup to read quickly
         chrome.storage.local.set({ playingTabs });
 
-        // You can also send message to popup or side panel if open
         chrome.runtime.sendMessage({
             action: "media-tabs-updated",
             tabs: playingTabs
-        }).catch((err: { message: string | string[]; }) => {
-            // Silently ignore — popup is probably just closed
-            if (err.message && err.message.includes("Receiving end does not exist")) {
-                // optional: console.debug("Popup not open, skipping update");
-            } else {
-                console.error("Unexpected sendMessage error:", err);
-            }
+        }).catch((_err: any) => {
+            // Popup closed
         });
     });
 }
 
-// Update when something changes
-chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: any, _tab: any) => {
-    // If a tab becomes audible again, remove it from the manual blocklist
-    if (changeInfo.audible === true) {
-        manuallyRemovedTabs.delete(tabId);
-    }
+// Listen for updates from content scripts
+chrome.runtime.onMessage.addListener((msg: any, sender: chrome.runtime.MessageSender, _sendResponse: (response?: any) => void) => {
+    if (msg.action === 'MEDIA_UPDATE' && sender.tab?.id) {
+        const tabId = sender.tab.id;
+        const details = msg.details;
+        const platform = msg.platform; // 'spotify', 'youtube', 'youtube-music'
 
-    // Most important fields for us
-    if ("audible" in changeInfo || "mutedInfo" in changeInfo || changeInfo.status === "complete") {
-        updateMediaTabs();
-    }
-});
+        let key = '';
+        if (platform === 'spotify') key = `spotifyDetails_${tabId}`;
+        else if (platform === 'youtube') key = `youtubeDetails_${tabId}`;
+        else if (platform === 'youtube-music') key = `youtubeMusicDetails_${tabId}`;
 
-// Also useful when tab becomes active
-chrome.tabs.onActivated.addListener(() => {
-    updateMediaTabs();
-});
-
-// Clean up closed tabs from recently playing map
-chrome.tabs.onRemoved.addListener((tabId: number) => {
-    recentlyPlayingTabs.delete(tabId);
-    manuallyRemovedTabs.delete(tabId);
-    updateMediaTabs();
-});
-
-// Initial load + when extension is installed/enabled
-chrome.runtime.onStartup.addListener(updateMediaTabs);
-chrome.runtime.onInstalled.addListener(updateMediaTabs);
-
-// Listen for Spotify details updates and trigger refresh
-chrome.storage.onChanged.addListener((changes: {}, areaName: string) => {
-    if (areaName === 'local') {
-        // Check if any Spotify or YouTube Music details were updated
-        const spotifyDetailChanged = Object.keys(changes).some(key => key.startsWith('spotifyDetails_'));
-        const youtubeMusicDetailChanged = Object.keys(changes).some(key => key.startsWith('youtubeMusicDetails_'));
-        const youtubeDetailChanged = Object.keys(changes).some(key => key.startsWith('youtubeDetails_'));
-        if (spotifyDetailChanged || youtubeMusicDetailChanged || youtubeDetailChanged) {
-            // Force an update when Spotify details change (ignore hash check)
+        if (key) {
+            chrome.storage.local.set({ [key]: details });
+            // Force update to refresh UI if needed (e.g. title changed)
             forceUpdate = true;
             updateMediaTabs();
         }
-    }
-});
-
-// Handle manual update requests from popup
-chrome.runtime.onMessage.addListener((msg: { action: string; tabId: number; }, _sender: any, _sendResponse: any) => {
-    if (msg.action === "request-update") {
+    } else if (msg.action === "request-update") {
         forceUpdate = true;
         updateMediaTabs();
     } else if (msg.action === "remove-media-tab") {
@@ -234,6 +96,35 @@ chrome.runtime.onMessage.addListener((msg: { action: string; tabId: number; }, _
     }
 });
 
-// Optional: update every ~5 seconds (the audible flag has a small delay anyway)
-// Reduced frequency since we now check for actual changes
-setInterval(updateMediaTabs, 5000);
+chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: any, _tab: any) => {
+    if (changeInfo.audible === true) {
+        manuallyRemovedTabs.delete(tabId);
+    }
+    if ("audible" in changeInfo || "mutedInfo" in changeInfo || changeInfo.status === "complete") {
+        updateMediaTabs();
+    }
+});
+
+chrome.tabs.onActivated.addListener(() => {
+    updateMediaTabs();
+});
+
+chrome.tabs.onRemoved.addListener((tabId: number) => {
+    recentlyPlayingTabs.delete(tabId);
+    manuallyRemovedTabs.delete(tabId);
+    updateMediaTabs();
+
+    // Clean up storage
+    chrome.storage.local.remove([
+        `spotifyDetails_${tabId}`,
+        `youtubeDetails_${tabId}`,
+        `youtubeMusicDetails_${tabId}`
+    ]);
+});
+
+chrome.runtime.onStartup.addListener(updateMediaTabs);
+chrome.runtime.onInstalled.addListener(updateMediaTabs);
+
+// Backup poll strictly for audible status changes that might be missed? 
+// Not strictly necessary if onUpdated works well, but keep a slow poll just in case
+setInterval(updateMediaTabs, 10000);

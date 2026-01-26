@@ -1,6 +1,6 @@
 
 import { useEffect, useState, type SetStateAction } from 'react';
-import type { SpotifySongDetails } from '../utils/extractors/spotify-extractor';
+import type { SpotifySongDetails } from '../types';
 
 export function useSpotifyDetails(tabId: number) {
     const [details, setDetails] = useState<SpotifySongDetails | null>(null);

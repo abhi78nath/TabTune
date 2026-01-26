@@ -6,14 +6,39 @@
   "permissions": [
     "tabs",
     "activeTab",
-    "storage",
-    "scripting"
+    "storage"
   ],
   "host_permissions": [
     "https://open.spotify.com/*",
     "https://music.youtube.com/*",
     "https://www.youtube.com/*",
     "https://api.lyrics.ovh/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://open.spotify.com/*"
+      ],
+      "js": [
+        "spotify.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://music.youtube.com/*"
+      ],
+      "js": [
+        "youtube-music.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "youtube.js"
+      ]
+    }
   ],
   "action": {
     "default_popup": "index.html",

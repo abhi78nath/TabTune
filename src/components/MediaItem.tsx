@@ -66,29 +66,16 @@ export function MediaItem({ tab }: MediaItemProps) {
         e.stopPropagation();
         setIsRemoving(true);
 
-        // Slight delay for animation before logic
         setTimeout(async () => {
             // Tell background to stop tracking this tab
             chrome.runtime.sendMessage({ action: "remove-media-tab", tabId: tab.id });
 
             // Pause the media
             try {
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    func: () => {
-                        const media = document.querySelectorAll('video, audio');
-                        for (const m of media) {
-                            if (!(m as HTMLMediaElement).paused) {
-                                (m as HTMLMediaElement).pause();
-                            }
-                        }
-                        // Try specific Spotify button too
-                        const spotifyBtn = document.querySelector('[data-testid="control-button-playpause"]');
-                        if (spotifyBtn && spotifyBtn.getAttribute('aria-label') === 'Pause') {
-                            (spotifyBtn as HTMLElement).click();
-                        }
-                    }
-                });
+                chrome.tabs.sendMessage(tab.id, {
+                    action: 'MEDIA_CONTROL',
+                    command: 'playPause'
+                }).catch(() => { });
             } catch (err) {
                 console.error("Failed to pause media on close:", err);
             }
@@ -98,33 +85,9 @@ export function MediaItem({ tab }: MediaItemProps) {
     const handlePlayPause = async (e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => {
-                    const spotifyBtn = document.querySelector('[data-testid="control-button-playpause"]');
-                    if (spotifyBtn) {
-                        (spotifyBtn as HTMLElement).click();
-                        return true;
-                    }
-
-                    const ytMusicBtn = document.querySelector('#play-pause-button');
-                    if (ytMusicBtn) {
-                        (ytMusicBtn as HTMLElement).click();
-                        return true;
-                    }
-
-                    const media = document.querySelectorAll('video, audio');
-                    let played = false;
-                    for (const m of media) {
-                        if (!(m as HTMLMediaElement).paused) {
-                            (m as HTMLMediaElement).pause();
-                        } else {
-                            (m as HTMLMediaElement).play();
-                            played = true;
-                        }
-                    }
-                    return played;
-                }
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'MEDIA_CONTROL',
+                command: 'playPause'
             });
         } catch (err) {
             console.error("Failed to toggle play/pause:", err);
@@ -134,18 +97,9 @@ export function MediaItem({ tab }: MediaItemProps) {
     const handlePrev = async (e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => {
-                    const btn = document.querySelector('[data-testid="control-button-skip-back"]');
-                    if (btn) (btn as HTMLElement).click();
-
-                    const ytBtn = document.querySelector('.previous-button');
-                    if (ytBtn) (ytBtn as HTMLElement).click();
-
-                    const ytpBtn = document.querySelector('.ytp-prev-button');
-                    if (ytpBtn) (ytpBtn as HTMLElement).click();
-                }
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'MEDIA_CONTROL',
+                command: 'prev'
             });
         } catch (err) {
             console.error("Failed to skip back:", err);
@@ -155,18 +109,9 @@ export function MediaItem({ tab }: MediaItemProps) {
     const handleNext = async (e: React.MouseEvent) => {
         e.stopPropagation();
         try {
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => {
-                    const btn = document.querySelector('[data-testid="control-button-skip-forward"]');
-                    if (btn) (btn as HTMLElement).click();
-
-                    const ytBtn = document.querySelector('.next-button');
-                    if (ytBtn) (ytBtn as HTMLElement).click();
-
-                    const ytpBtn = document.querySelector('.ytp-next-button');
-                    if (ytpBtn) (ytpBtn as HTMLElement).click();
-                }
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'MEDIA_CONTROL',
+                command: 'next'
             });
         } catch (err) {
             console.error("Failed to skip forward:", err);
@@ -221,11 +166,6 @@ export function MediaItem({ tab }: MediaItemProps) {
                         </small>
                         <div className="title-text" style={textStyle}>{title}</div>
                         <div className="artist-text" style={textStyle}>{artist}</div>
-                        {/* {tab.paused && (
-                            <small style={{ color: textColor, opacity: 0.8, fontStyle: 'italic', marginTop: 4 }}>
-                                ⏸ Paused
-                            </small>
-                        )} */}
                     </div>
                 </div>
 
@@ -240,7 +180,7 @@ export function MediaItem({ tab }: MediaItemProps) {
                         currentTime={mediaDetails.currentTime}
                         progress={mediaDetails.progress}
                         isPlaying={!tab.paused}
-                        style={dominantColor ? { color: textColor } : undefined} // Pass color to override defaults
+                        style={dominantColor ? { color: textColor } : undefined}
                     />
                 )}
 

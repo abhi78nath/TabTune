@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import type { YouTubeSongDetails } from '../utils/extractors/youtube-extractor';
+import type { YouTubeSongDetails } from '../types';
 
 export function useYouTubeDetails(tabId: number) {
     const [details, setDetails] = useState<YouTubeSongDetails | null>(null);

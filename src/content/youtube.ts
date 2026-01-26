@@ -1,20 +1,10 @@
 
-export interface YouTubeSongDetails {
-    title: string | null;
-    artist: string | null;
-    album: string | null;
-    image: string | null;
-    duration: string | null;
-    currentTime: string | null;
-    progress: string | null;
-    isAd: boolean;
-}
+import type { YouTubeSongDetails } from '../types';
 
-/**
- * Extracts song/video details from YouTube
- * This function is injected into YouTube tabs
- */
-export function extractYouTubeSongDetails(): YouTubeSongDetails {
+let lastDetails: YouTubeSongDetails | null = null;
+let lastUrl = location.href;
+
+function extractYouTubeSongDetails(): YouTubeSongDetails {
     const songDetails: YouTubeSongDetails = {
         title: null,
         artist: null,
@@ -26,7 +16,6 @@ export function extractYouTubeSongDetails(): YouTubeSongDetails {
         isAd: false,
     };
 
-    // YouTube DOM Selectors (Standard YouTube)
     const titleElement = document.querySelector("h1.ytd-watch-metadata yt-formatted-string") ||
         document.querySelector("h1.style-scope.ytd-watch-metadata") ||
         document.querySelector(".ytd-video-primary-info-renderer.title");
@@ -38,7 +27,6 @@ export function extractYouTubeSongDetails(): YouTubeSongDetails {
     const timeDurationElement = document.querySelector(".ytp-time-duration");
     const progressBarElement = document.querySelector(".ytp-progress-bar");
 
-    // Check for Ad - Standard YouTube
     const isAdShowing = !!document.querySelector(".ad-showing, .ad-interrupting");
     const adOverlay = !!document.querySelector(".ytp-ad-player-overlay, .ytp-ad-text, .ytp-ad-visit-advertiser-button, .ytp-ad-skip-button");
 
@@ -59,7 +47,6 @@ export function extractYouTubeSongDetails(): YouTubeSongDetails {
         songDetails.duration = timeDurationElement.textContent?.trim() || (timeDurationElement as HTMLElement).innerText?.trim() || null;
     }
 
-    // Try to get progress from slider aria-valuenow or calculate
     if (progressBarElement) {
         const slider = progressBarElement as HTMLElement;
         const valueNow = slider.getAttribute("aria-valuenow");
@@ -74,7 +61,6 @@ export function extractYouTubeSongDetails(): YouTubeSongDetails {
         }
     }
 
-    // Fallback/Primary Media Session API
     if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
         const metadata = navigator.mediaSession.metadata;
         if (!songDetails.title) songDetails.title = metadata.title;
@@ -82,7 +68,6 @@ export function extractYouTubeSongDetails(): YouTubeSongDetails {
         if (!songDetails.album) songDetails.album = metadata.album;
 
         if (!songDetails.image && metadata.artwork && metadata.artwork.length > 0) {
-            // Get the largest artwork
             const artwork = [...metadata.artwork].sort((a, b) => {
                 const widthA = parseInt(a.sizes?.split('x')[0] || "0");
                 const widthB = parseInt(b.sizes?.split('x')[0] || "0");
@@ -92,13 +77,94 @@ export function extractYouTubeSongDetails(): YouTubeSongDetails {
         }
     }
 
-    // If still no image, try meta tag
+    // Fallback image extraction
     if (!songDetails.image) {
+        // Try to get thumbnail from DOM link element
+        const thumbLink = document.querySelector('link[itemprop="thumbnailUrl"]');
+        if (thumbLink) {
+            songDetails.image = thumbLink.getAttribute("href");
+        }
+    }
+
+    if (!songDetails.image) {
+        // Try og:image meta tag
         const metaImage = document.querySelector('meta[property="og:image"]');
         if (metaImage) {
             songDetails.image = metaImage.getAttribute("content");
         }
     }
 
+    if (!songDetails.image) {
+        // Construct from video ID in URL as a last resort
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('v');
+        if (videoId) {
+            songDetails.image = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+        }
+    }
+
     return songDetails;
 }
+
+function notify() {
+    try {
+        const details = extractYouTubeSongDetails();
+        // Check if changed
+        if (JSON.stringify(details) !== JSON.stringify(lastDetails)) {
+            lastDetails = details;
+            chrome.runtime.sendMessage({
+                action: 'MEDIA_UPDATE',
+                platform: 'youtube', // Distinguish from music.youtube in background if needed
+                details
+            }).catch(() => { });
+        }
+    } catch (e) {
+        console.error("TabTune Error:", e);
+    }
+}
+
+const observer = new MutationObserver(() => {
+    notify();
+});
+
+// Observe common container
+const app = document.querySelector("ytd-app") || document.body;
+observer.observe(app, {
+    childList: true,
+    subtree: true,
+    attributes: true
+});
+
+setInterval(notify, 1000);
+
+setInterval(() => {
+    if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        notify();
+    }
+}, 2000);
+
+chrome.runtime.onMessage.addListener((msg: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    if (msg.action === 'MEDIA_CONTROL') {
+        const command = msg.command;
+        try {
+            if (command === 'playPause') {
+                const video = document.querySelector('video');
+                if (video) {
+                    if (video.paused) video.play(); else video.pause();
+                }
+            } else if (command === 'next') {
+                (document.querySelector('.ytp-next-button') as HTMLElement)?.click();
+            } else if (command === 'prev') {
+                (document.querySelector('.ytp-prev-button') as HTMLElement)?.click(); // Standard youtube often doesn't have prev button in player, but let's try
+                // Or history back? No.
+            }
+            sendResponse({ status: 'ok' });
+        } catch (e) {
+            console.error("Media control failed", e);
+            sendResponse({ status: 'error' });
+        }
+    }
+});
+
+notify();

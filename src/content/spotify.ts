@@ -1,20 +1,10 @@
 
-export interface SpotifySongDetails {
-    title: string | null;
-    artist: string | null;
-    album: string | null;
-    image: string | null;
-    duration: string | null;
-    currentTime: string | null;
-    progress: string | null;
-}
+import type { SpotifySongDetails } from '../types';
 
-/**
- * Extracts song details from Spotify web player
- * This function is injected into Spotify tabs to read the DOM
- */
-export function extractSpotifySongDetails(): SpotifySongDetails {
-    // Spotify Web Player DOM selectors (these may change, but these are common ones)
+let lastDetails: SpotifySongDetails | null = null;
+let lastUrl = location.href;
+
+function extractSpotifySongDetails(): SpotifySongDetails {
     const songDetails: SpotifySongDetails = {
         title: null,
         artist: null,
@@ -25,11 +15,8 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
         progress: null,
     };
 
-    // Try multiple selectors as Spotify's DOM structure can vary
-    // Method 1: Try data-testid selectors (common in modern Spotify)
     const titleElement =
         document.querySelector('[data-testid="context-item-info-title"]') ||
-        // document.querySelector('[data-testid="entityTitle"]') ||
         document.querySelector('a[data-testid="context-item-link"]') ||
         document.querySelector(".now-playing-bar__left .track-info__name a") ||
         document.querySelector(".track-info__name a");
@@ -46,7 +33,6 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
         (document.querySelector(".now-playing-bar__left img") as HTMLImageElement) ||
         (document.querySelector(".cover-art img") as HTMLImageElement);
 
-    // Try to get current time text directly
     const currentTimeElement =
         document.querySelector('[data-testid="playback-position"]') ||
         document.querySelector(".playback-bar__progress-time:first-child");
@@ -56,7 +42,6 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
         document.querySelector('[data-testid="duration-text"]') ||
         document.querySelector(".playback-bar__progress-time:last-child");
 
-    // Get progress bar for percentage calculation
     const progressElement =
         (document.querySelector('[data-testid="progress-bar"]') as HTMLElement) ||
         (document.querySelector(".playback-bar__progress") as HTMLElement);
@@ -77,7 +62,6 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
         songDetails.image = imageElement.src || imageElement.getAttribute("src");
     }
 
-    // Get current time directly from Spotify's display
     if (currentTimeElement) {
         songDetails.currentTime =
             currentTimeElement.textContent?.trim() || (currentTimeElement as HTMLElement).innerText?.trim() || null;
@@ -88,7 +72,6 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
             durationElement.textContent?.trim() || (durationElement as HTMLElement).innerText?.trim() || null;
     }
 
-    // Calculate progress percentage from progress bar
     if (progressElement && progressContainer) {
         const progressWidth = progressElement.offsetWidth;
         const containerWidth = progressContainer.offsetWidth;
@@ -97,7 +80,6 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
         }
     }
 
-    // Also try to get from page title (fallback)
     if (!songDetails.title) {
         const pageTitle = document.title;
         if (pageTitle && pageTitle.includes(" - ")) {
@@ -111,3 +93,69 @@ export function extractSpotifySongDetails(): SpotifySongDetails {
 
     return songDetails;
 }
+
+function notify() {
+    try {
+        const details = extractSpotifySongDetails();
+        // Check if changed
+        if (JSON.stringify(details) !== JSON.stringify(lastDetails)) {
+            lastDetails = details;
+            chrome.runtime.sendMessage({
+                action: 'MEDIA_UPDATE',
+                platform: 'spotify',
+                details
+            }).catch(() => {
+                // Ignore connection errors (e.g. extension updated/reloaded)
+            });
+        }
+    } catch (e) {
+        console.error("TabTune Error:", e);
+    }
+}
+
+// Observe DOM
+const observer = new MutationObserver(() => {
+    // Throttle slightly
+    notify();
+});
+
+observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true
+});
+
+// Also poll for time updates
+setInterval(notify, 1000);
+
+// Detect URL changes
+setInterval(() => {
+    if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        notify();
+    }
+}, 2000);
+
+
+// Listen for control messages
+chrome.runtime.onMessage.addListener((msg: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    if (msg.action === 'MEDIA_CONTROL') {
+        const command = msg.command;
+        try {
+            if (command === 'playPause') {
+                (document.querySelector('[data-testid="control-button-playpause"]') as HTMLElement)?.click();
+            } else if (command === 'next') {
+                (document.querySelector('[data-testid="control-button-skip-forward"]') as HTMLElement)?.click();
+            } else if (command === 'prev') {
+                (document.querySelector('[data-testid="control-button-skip-back"]') as HTMLElement)?.click();
+            }
+            sendResponse({ status: 'ok' });
+        } catch (e) {
+            console.error("Media control failed", e);
+            sendResponse({ status: 'error' });
+        }
+    }
+});
+
+// Initial
+notify();

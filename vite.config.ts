@@ -11,6 +11,9 @@ export default defineConfig({
       input: {
         popup: resolve(__dirname, "index.html"),
         background: resolve(__dirname, "src/background.ts"),
+        spotify: resolve(__dirname, "src/content/spotify.ts"),
+        youtube: resolve(__dirname, "src/content/youtube.ts"),
+        "youtube-music": resolve(__dirname, "src/content/youtube-music.ts"),
       },
       output: {
         entryFileNames: "[name].js",
