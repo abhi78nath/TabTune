@@ -234,6 +234,11 @@ chrome.runtime.onMessage.addListener((msg: { action: string; tabId: number; }, _
     }
 });
 
-// Optional: update every ~5 seconds (the audible flag has a small delay anyway)
-// Reduced frequency since we now check for actual changes
-setInterval(updateMediaTabs, 5000);
+// Create an alarm for periodic updates (needed for service worker reliability in MV3)
+chrome.alarms.create('update-media-tabs', { periodInMinutes: 0.1 }); // ~6 seconds
+
+chrome.alarms.onAlarm.addListener((alarm: any) => {
+    if (alarm.name === 'update-media-tabs') {
+        updateMediaTabs();
+    }
+});
